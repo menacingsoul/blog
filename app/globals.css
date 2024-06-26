@@ -2,32 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+
+.input-field {
+  @apply appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-200/40 bg-gray-800/50 placeholder-gray-400 text-white focus:outline-none focus:ring-violet-400 focus:border-violet-400 focus:z-10 text-sm md:text-base;
+}
+.scrollbar-thin {
+  scrollbar-width:thin;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
+.scrollbar-thumb-rounded {
+  scrollbar-color: transparent transparent;
+  scrollbar-width: 2px;
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
 }
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.blog-card:hover {
+  @apply transform scale-105 shadow-xl;
 }

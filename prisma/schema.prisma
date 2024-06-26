@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String?
+  username     String   @unique
+  clerkId      String   @unique
+  email        String   @unique
+  website      String?
+  bio          String
+  registered   Boolean  @default(false)
+  city         String
+  country      String
+  profilePhoto String?  @default("https://eu.ui-avatars.com/api/?name=John+Doe&color=7F9CF5&background=EBF4FF") // Default photo URL
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts    Blog[]
+  comments Comment[]
+
+  following User[] @relation("Follows")
+  followers User[] @relation("Follows")
+}
+
+model Blog {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  content     String
+  views       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  published   Boolean  @default(false)
+  upVotes     Int      @default(0)
+  downVotes   Int      @default(0)
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+
+  comments Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  upVotes   Int      @default(0)
+  downVotes Int      @default(0)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  blogId    String
+}
