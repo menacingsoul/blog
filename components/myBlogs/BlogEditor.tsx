@@ -187,12 +187,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         <div className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
   border border-white/30 hover:border-white/50
   hover:shadow-2xl transition-all duration-300 transform p-4 rounded-lg w-full">
-          {isAutosaving && (
-            <div className="flex items-center mb-2">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-300 mr-2" />
-              <span className="text-gray-300">Autosaving...</span>
-            </div>
-          )}
           <div className=' flex items-center mb-2'>
             <div className='p-2 text-white text-lg font-semibold'>
               Title:
@@ -227,6 +221,12 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             <button onClick={handleDeleteClick} className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400">
               Delete
             </button>
+            {isAutosaving && (
+            <div className="flex items-center mb-2">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-300 mr-2" />
+              <span className="text-gray-300">Autosaving...</span>
+            </div>
+          )}
           </div>
 
         </div>
