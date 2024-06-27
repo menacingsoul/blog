@@ -21,7 +21,7 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
     <Link href={`/blog/viewer/${blog.id}`} className=" h-full cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
       border border-[#E2DFD0]/30 shadow-lg hover:shadow-2xl transition-all duration-300
       hover:bg-gradient-to-b flex items-center mb-4">
-        <div className='flex flex-row p-2 '>
+        <div className='flex flex-col sm:flex-row p-2 '>
         <div className="relative  overflow-hidden rounded-lg">
         <Image 
           src="/blog1.jpg"
@@ -41,7 +41,7 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         width={30}
         className=" rounded-full"
         />
-        <p className="text-gray-900 text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
+        <p className="text-gray-900 sm:text-sm text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
         </div>
         
         <p className="text-gray-300 line-clamp-2">{blog.description}</p>

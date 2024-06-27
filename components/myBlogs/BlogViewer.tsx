@@ -58,7 +58,7 @@ interface Author {
     }
   };
 
-  const shareUrl = `https://blogfiles.vercel.app/blog/${blogId}`;
+  const shareUrl = `https://blogfiles.vercel.app/blog/viewer/${blogId}`;
   const shareTitle = title;
 
   return (

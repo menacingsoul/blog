@@ -58,7 +58,7 @@ interface Author {
     }
   };
 
-  const shareUrl = `https://blogfiles.vercel.app/blog/${blogId}`;
+  const shareUrl = `https://blogfiles.vercel.app/blog/viewer/${blogId}`;
   const shareTitle = title;
 
   return (
@@ -78,14 +78,17 @@ interface Author {
         <div className="prose lg:prose-lg text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
           {parse(content)}
         </div>
-        <div className="flex items-center mt-4 space-x-4">
-          <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300">
+        <div className="flex flex-col sm:flex-row mt-2 space-x-4 items-center">
+        <div className=' flex items-center mt-4 space-x-2 '>
+        <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300">
             Upvote
           </button>
           <button onClick={() => onVote('downvote')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
             Downvote
-          </button>
-          <span className="text-gray-300">Upvotes: {voteCount.upvotes} | Downvotes: {voteCount.downvotes}</span>
+          </button>    
+        </div>
+          
+          <span className="text-gray-300 mt-2">Upvotes: {voteCount.upvotes} | Downvotes: {voteCount.downvotes}</span>
         </div>
         <div className="flex mt-4 space-x-4">
           <TwitterShareButton url={shareUrl} title={shareTitle}>
