@@ -78,9 +78,9 @@ const ProfileCard: React.FC<{ user: User }> = ({ user }) => {
                  <div className="mt-1">{user.city}, {user.country}</div>
               </div>
               <div className="items-center w-full p-3 justify-center ">
-              <div className=" bg-teal-300 items-center p-3 justify-center rounded-lg text-black">
+              <button className=" bg-zinc-800 hover:bg-zinc-900 items-center py-2 px-5 justify-center rounded-lg text-lg text-white shadow-lg">
                 <SignOutButton  redirectUrl="/"/>
-              </div>
+              </button>
               </div>
               
              
