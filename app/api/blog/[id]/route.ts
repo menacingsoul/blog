@@ -5,7 +5,7 @@ import { getUserByClerkID } from '@/utils/auth';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { title, content, description, published } = await req.json();
+  const { title, content, description, bool } = await req.json();
 
   try {
     const user = await getUserByClerkID();
@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         title,
         description,
         content,
-        published
+        published:bool
       },
     });
 
