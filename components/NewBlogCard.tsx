@@ -10,10 +10,11 @@ import { Loader2 } from "lucide-react";
 const NewBlogCard = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
   const createBlogHandler = async () => {
+    setIsLoading(true);
     try {
       const newBlog = await createBlog();
-      setIsLoading(true);
       router.push(`/blog/editor/${newBlog.id}`);
     } catch (error) {
       alert("Error creating blog.");

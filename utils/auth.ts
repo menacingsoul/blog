@@ -14,6 +14,5 @@ export const getUserByClerkID = async () => {
         posts :true,
     }
   })
-  console.log(user);
   return user
 }
