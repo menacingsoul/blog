@@ -81,11 +81,10 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description, content, published: true }),
+        body: JSON.stringify({ title, description, content, bool:true }),
       });
 
       if (res.ok) {
-        alert('Blog published successfully!');
         router.push('/home');
       } else {
         const errorData = await res.json();
@@ -187,6 +186,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         <div className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
   border border-white/30 hover:border-white/50
   hover:shadow-2xl transition-all duration-300 transform p-4 rounded-lg w-full">
+          
           <div className=' flex items-center mb-2'>
             <div className='p-2 text-white text-lg font-semibold'>
               Title:
@@ -214,7 +214,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           </div>
 
           <ReactQuill value={content} onChange={handleContentChange} className=' text-zinc-200 bg-gradient-to-br from-white/5 to-white/10 backdrop-filter backdrop-blur-lg outline-none' />
-          <div className='flex gap-3'>
+          <div className='flex gap-3 items-center'>
             <button onClick={handlePublishClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400">
               Publish
             </button>
@@ -228,6 +228,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             </div>
           )}
           </div>
+          
 
         </div>
       </div>
