@@ -25,7 +25,7 @@ import { NextRequest } from 'next/server';
 //   }
 // }
 
-export async function GET(req: NextRequest, { params }){
+export async function GET(req: NextRequest, { params }: { params: { id: string } }){
   try{
     const user  = await getUserByClerkID();
     const  {id} = params;

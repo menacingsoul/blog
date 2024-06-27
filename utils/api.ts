@@ -87,7 +87,7 @@ export const addComment = async (id: string, content: string) => {
   }
 };
 
-export const deleteBlog = async (id: Number) => {
+export const deleteBlog = async (id: String) => {
   try {
     const res = await fetch(createURL(`/api/blog/${id}`), {
       method: 'DELETE',

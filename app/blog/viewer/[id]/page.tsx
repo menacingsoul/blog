@@ -3,7 +3,7 @@
 import BlogViewer from '@/components/BlogViewer';
 import { prisma } from '@/utils/db';
 
-const BlogViewPage = async ({ params }) => {
+const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
 
   // Fetch the blog data on the server side

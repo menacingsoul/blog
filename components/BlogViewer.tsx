@@ -6,12 +6,37 @@ import Image from 'next/image';
 import { TwitterShareButton, WhatsappShareButton, TelegramShareButton,FacebookShareButton,TelegramIcon,XIcon,WhatsappIcon, FacebookIcon } from 'react-share';
 import { handleVote, addComment } from '@/utils/api';
 
-const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initialComments }) => {
+interface Author {
+    profilePhoto: string;
+    firstName: string;
+    lastName: string;
+  }
+  
+  interface Comment {
+    id: string;
+    author: Author;
+    content: string;
+  }
+  
+  interface BlogViewerProps {
+    blogId: string;
+    title: string;
+    content: string;
+    upVotes: number;
+    downVotes: number;
+    author: Author;
+    initialComments: Comment[];
+  }
+  
+  
+  const BlogViewer: React.FC<BlogViewerProps> = ({ 
+      blogId, title, content, upVotes, downVotes, author, initialComments 
+  }) => {
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState('');
   const [voteCount, setVoteCount] = useState({ upvotes: upVotes, downvotes: downVotes });
 
-  const onVote = async (voteType) => {
+  const onVote = async (voteType: 'upvote' | 'downvote') => {
     try {
       const updatedBlog = await handleVote(blogId, voteType);
       setVoteCount({

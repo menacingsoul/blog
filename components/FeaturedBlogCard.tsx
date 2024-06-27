@@ -2,11 +2,21 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image'; // Using next/image for better image optimization
+import Image from 'next/image'; 
+interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  author: {
+    profilePhoto: string;
+    firstName: string;
+    lastName: string;
+  };
+  
+}
 
 
-
-function FeaturedBlogCard({ blog }) {
+const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   return (
     <Link href={`/blog/viewer/${blog.id}`} className=" h-full cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
       border border-[#E2DFD0]/30 shadow-lg hover:shadow-2xl transition-all duration-300
@@ -16,8 +26,8 @@ function FeaturedBlogCard({ blog }) {
         <Image 
           src="/blog1.jpg"
           alt={blog.title} 
-          width={400} // Replace with your desired width
-          height={250} // Replace with your desired height
+          width={400} 
+          height={250}
           className="object-cover" 
         />
       </div>

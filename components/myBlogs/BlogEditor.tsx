@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import 'react-quill/dist/quill.snow.css';
@@ -10,7 +10,23 @@ import { deleteBlog } from '@/utils/api';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
-const BlogEditor = ({ blogId, initialDescription, initialContent, initialTitle }) => {
+interface BlogEditorProps {
+  blogId: string;
+  initialDescription: string;
+  initialContent: string;
+  initialTitle: string;
+}
+
+interface BlogData {
+  title: string;
+  description: string;
+  content: string;
+  published: boolean;
+}
+
+const BlogEditor: React.FC<BlogEditorProps> = ({ 
+  blogId, initialDescription, initialContent, initialTitle 
+}) => {
   const [content, setContent] = useState(initialContent || '');
   const [description, setDescription] = useState(initialDescription || '');
   const [title, setTitle] = useState(initialTitle || '');
@@ -25,16 +41,16 @@ const BlogEditor = ({ blogId, initialDescription, initialContent, initialTitle }
     setShowConfirm(true);
   };
 
-  const handleContentChange = (value) => {
+  const handleContentChange = (value:string) => {
     setContent(value);
   };
 
-  const handleTitleChange = (event) => {
-    setTitle(event.target.value);
+  const handleTitleChange = (event: FormEvent<HTMLInputElement>) => {
+    setTitle(event.currentTarget.value);
   };
 
-  const handleDescriptionChange = (event) => {
-    setDescription(event.target.value);
+  const handleDescriptionChange = (event: FormEvent<HTMLInputElement>) => {
+    setDescription(event.currentTarget.value);
   };
 
   const handleDeleteClick = () => {

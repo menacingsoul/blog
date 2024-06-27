@@ -4,6 +4,7 @@ import { getUserByClerkID } from "@/utils/auth";
 
 
 
+
 const ProfilePage = async () => {
  
     const user = await getUserByClerkID();

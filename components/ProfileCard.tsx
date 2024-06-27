@@ -7,7 +7,20 @@ import { LocateFixed } from "lucide-react";
 import FollowerList from "./FollowerList";
 import FollowingList from "./FollowingList";
 
-const ProfileCard = ({ user }) => {
+interface User {
+  profilePhoto: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  city: string;
+  country: string;
+  followers: { /* Add properties for follower details */ }[]; // Adjust based on your data structure
+  following: { /* Add properties for following details */ }[]; // Adjust based on your data structure
+  posts: { /* Add properties for post details */ }[];        // Adjust based on your data structure
+  bio: string;
+}
+
+const ProfileCard: React.FC<{ user: User }> = ({ user }) => {
   const [followerList, setFollowerList] = useState(false);
   const [followingList, setFollowingList] = useState(false);
 

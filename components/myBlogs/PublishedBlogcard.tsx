@@ -2,8 +2,21 @@
 'use client'
 
 import Link from 'next/link';
+import Image from 'next/image';
+interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  author: {
+    profilePhoto: string;
+    firstName: string;
+    lastName: string;
+  };
+  
+}
 
-function PublishedBlogCard({ blog }) {
+
+const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   return (
     <Link href={`/myblogs/viewer/${blog.id}`} className=" max-w-full h-56 rounded-xl overflow-hidden shadow-lg 
   bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
@@ -13,7 +26,16 @@ function PublishedBlogCard({ blog }) {
       </div>
       <div className="p-6">
         <h2 className="text-xl md:text-2xl font-semibold mb-2 text-white">{blog.title}</h2>
-        <p className="text-gray-900 text-xs mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-xl w-fit  ">{blog.author.firstName} {blog.author.lastName}</p>
+        <div className='flex mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-2xl w-fit items-center gap-1'>
+        <Image
+        alt="author image"
+        src={blog.author.profilePhoto}
+        height={30}
+        width={30}
+        className=" rounded-full"
+        />
+        <p className="text-gray-900 text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
+        </div>
         <p className="text-gray-300 line-clamp-2 ">{blog.description}</p>
       </div>
     </Link>

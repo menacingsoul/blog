@@ -1,12 +1,29 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState,FormEvent } from 'react';
 import { CountryDropdown } from 'react-country-region-selector';
 import { toast } from "react-toastify";
 import { useRouter } from 'next/navigation';
 
-const ProfileForm = () => {
-  const [formData, setFormData] = useState({
+
+
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  username: string;
+  bio: string;
+  website: string;
+  city: string;
+  country: string; 
+}
+
+interface APIError {
+  error: string; // Or whatever shape your API error response has
+}
+
+const ProfileForm: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     username: "",
@@ -20,7 +37,7 @@ const ProfileForm = () => {
   const [countryError, setCountryError] = useState(false);
   const router = useRouter();
 
-  const checkUsernameAvailability = async (username) => {
+  const checkUsernameAvailability = async (username:string) => {
     try {
       const response = await fetch(`/api/username-exists?username=${username}`);
       const data = await response.json();
@@ -30,7 +47,7 @@ const ProfileForm = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 

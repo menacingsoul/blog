@@ -3,7 +3,8 @@
 import BlogEditor from '@/components/myBlogs/BlogEditor';
 import { prisma } from '@/utils/db';
 
-const BlogEditorPage = async ({ params }) => {
+
+const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
 
   // Fetch the blog data on the server side

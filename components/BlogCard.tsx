@@ -3,7 +3,22 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-function BlogCard({ blog }) {
+
+
+interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  author: {
+    profilePhoto: string;
+    firstName: string;
+    lastName: string;
+  };
+  
+}
+
+
+const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   return (
     <Link href={`/blog/viewer/${blog.id}`} className=" max-w-full h-56 rounded-xl overflow-hidden shadow-lg 
   bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg

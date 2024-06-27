@@ -3,8 +3,15 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+interface User {
+  id: string | number;         // Ensure unique identification
+  profilePhoto: string;
+  firstName: string;
+  username: string;
+  // Add any other properties your follower object has
+}
 
-const UserList = ({ users }) => {
+const UserList: React.FC<{ users: User[] }> = ({ users }) => {
   return (
     <div
       className="overflow-auto mx-auto  rounded-xl w-full h-fit bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6"

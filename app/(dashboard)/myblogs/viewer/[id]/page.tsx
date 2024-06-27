@@ -3,7 +3,7 @@
 import BlogViewer from '@/components/myBlogs/BlogViewer';
 import { prisma } from '@/utils/db';
 
-const BlogViewPage = async ({ params }) => {
+const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
 
   // Fetch the blog data on the server side
@@ -20,13 +20,8 @@ const BlogViewPage = async ({ params }) => {
       },
       comments:{
         select:{
-            author:{
-                select:{
-                    firstName:true,
-                    lastName:true,
-                    profilePhoto:true,
-                }
-            },
+            id:true,
+            author:true,
             content:true,
         }
       }

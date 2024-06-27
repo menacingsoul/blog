@@ -21,7 +21,7 @@ const BlogPage = async () => {
       },
     },
     orderBy: {
-      views: 'desc',
+      upVotes: 'desc',
     },
   });
 
@@ -59,7 +59,7 @@ const BlogPage = async () => {
           Top Blog
         </div>
         <div className="mb-4">
-          {featuredBlog && <FeaturedBlogCard blog={featuredBlog} author={featuredBlog.author} />}
+          {featuredBlog && <FeaturedBlogCard blog={featuredBlog}/>}
         </div>
       
       <div className="text-white p-4 font-bold text-2xl mt-8">

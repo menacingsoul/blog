@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
 import { getUserByClerkID } from '@/utils/auth';
 
-export async function PATCH(req: NextRequest, { params }) {
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const { title, content, description, published } = await req.json();
 
@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }) {
   }
 }
 
-export async function GET(req: NextRequest, { params }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
 
   try {
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest, { params }) {
   }
 }
 
-export async function POST(req: NextRequest, { params }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const { type, content } = await req.json();
 
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest, { params }) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
 
