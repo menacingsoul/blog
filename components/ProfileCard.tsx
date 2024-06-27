@@ -6,6 +6,7 @@ import { LocateIcon } from "lucide-react";
 import { LocateFixed } from "lucide-react";
 import FollowerList from "./FollowerList";
 import FollowingList from "./FollowingList";
+import { SignOutButton } from "@clerk/nextjs";
 
 interface User {
   profilePhoto: string;
@@ -76,6 +77,12 @@ const ProfileCard: React.FC<{ user: User }> = ({ user }) => {
                   <LocateFixed/>
                  <div className="mt-1">{user.city}, {user.country}</div>
               </div>
+              <div className="items-center w-full p-3 justify-center ">
+              <div className=" bg-teal-300 items-center p-3 justify-center rounded-lg text-black">
+                <SignOutButton  redirectUrl="/"/>
+              </div>
+              </div>
+              
              
             </div>
           </div>
