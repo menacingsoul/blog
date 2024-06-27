@@ -86,10 +86,12 @@ const ProfileCard = ({ user }) => {
                 >Following</span>
               </div>
               <div className="lg:mr-4 p-3 text-center">
+                <Link href={"/myblogs"}>
                 <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
                 {user.posts.length}
                 </span>
                 <span className="text-sm text-blueGray-400">Blogs</span>
+                </Link>
               </div>
             </div>
           </div>

@@ -33,7 +33,7 @@ const NewBlogCard = () => {
        </div>
      </div>
     )}
-
+    {!isLoading&&(
       <div
         className="w-fit h-fit cursor-pointer rounded-xl overflow-hidden shadow-lg p-4 
         bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg border 
@@ -43,7 +43,7 @@ const NewBlogCard = () => {
       >
         <PlusIcon className="w-6 h-6 " />
         Create Blog
-      </div>
+      </div>)}
     </>
   );
 };

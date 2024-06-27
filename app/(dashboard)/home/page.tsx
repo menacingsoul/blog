@@ -59,7 +59,7 @@ const BlogPage = async () => {
           Top Blog
         </div>
         <div className="mb-4">
-          {featuredBlog && <FeaturedBlogCard blog={featuredBlog} />}
+          {featuredBlog && <FeaturedBlogCard blog={featuredBlog} author={featuredBlog.author} />}
         </div>
       
       <div className="text-white p-4 font-bold text-2xl mt-8">

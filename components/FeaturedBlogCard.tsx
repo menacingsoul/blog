@@ -14,7 +14,7 @@ function FeaturedBlogCard({ blog }) {
         <div className='flex flex-row p-2 '>
         <div className="relative  overflow-hidden rounded-lg">
         <Image 
-          src="/blog.jpg"
+          src="/blog1.jpg"
           alt={blog.title} 
           width={400} // Replace with your desired width
           height={250} // Replace with your desired height
@@ -23,7 +23,17 @@ function FeaturedBlogCard({ blog }) {
       </div>
       <div className="p-6">
         <h2 className="text-xl md:text-2xl font-semibold mb-2 text-white">{blog.title}</h2>
-        <p className="text-gray-900 text-xs mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-xl w-fit ">{blog.author.firstName}</p>
+        <div className='flex mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-2xl w-fit items-center gap-1'>
+        <Image
+        alt="author image"
+        src={blog.author.profilePhoto}
+        height={30}
+        width={30}
+        className=" rounded-full"
+        />
+        <p className="text-gray-900 text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
+        </div>
+        
         <p className="text-gray-300 line-clamp-2">{blog.description}</p>
       </div>
       </div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
+import { TwitterShareButton, WhatsappShareButton, TelegramShareButton,FacebookShareButton,TelegramIcon,XIcon,WhatsappIcon, FacebookIcon } from 'react-share';
 import { handleVote, addComment } from '@/utils/api';
 
 const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initialComments }) => {
@@ -32,6 +33,9 @@ const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initia
     }
   };
 
+  const shareUrl = `localhost:3000/blog/${blogId}`;
+  const shareTitle = title;
+
   return (
     <div className='md:flex flex-row '>
       <div className="w-full md:w-8/12 shadow-lg bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform p-8 rounded">
@@ -49,7 +53,7 @@ const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initia
         <div className="prose lg:prose-lg text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
           {parse(content)}
         </div>
-        <div className="flex mt-4 space-x-4">
+        <div className="flex items-center mt-4 space-x-4">
           <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300">
             Upvote
           </button>
@@ -57,6 +61,20 @@ const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initia
             Downvote
           </button>
           <span className="text-gray-300">Upvotes: {voteCount.upvotes} | Downvotes: {voteCount.downvotes}</span>
+        </div>
+        <div className="flex mt-4 space-x-4">
+          <TwitterShareButton url={shareUrl} title={shareTitle}>
+            <XIcon size={32} round />
+          </TwitterShareButton>
+          <WhatsappShareButton url={shareUrl} title={shareTitle}>
+            <WhatsappIcon size={32} round />
+          </WhatsappShareButton>
+          <TelegramShareButton url={shareUrl} title={shareTitle}>
+            <TelegramIcon size={32} round />
+          </TelegramShareButton>
+          <FacebookShareButton url={shareUrl} title={shareTitle}>
+            <FacebookIcon size={32} round />
+          </FacebookShareButton>
         </div>
       </div>
       <div className="z-50 md:w-4/12 w-full px-4 max-h-screen overflow-y-scroll scrollbar-thumb-rounded">

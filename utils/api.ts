@@ -86,3 +86,22 @@ export const addComment = async (id: string, content: string) => {
     throw error;
   }
 };
+
+export const deleteBlog = async (id: Number) => {
+  try {
+    const res = await fetch(createURL(`/api/blog/${id}`), {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      return true;
+    } else {
+      const errorData = await res.json();
+      throw new Error(errorData?.message || 'Failed to delete blog');
+    }
+  } catch (error) {
+    console.error('Error deleting blog:', error);
+    throw error;
+  }
+
+}

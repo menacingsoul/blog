@@ -35,7 +35,9 @@ const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initia
   return (
     <div className='md:flex flex-row '>
       <div className="w-full md:w-8/12 shadow-lg bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform p-8 rounded">
-        <h1 className="text-3xl mb-4 text-white font-bold">{title}</h1>
+        <h1 className="text-3xl mb-4 text-white font-bold">{title}
+            <p className=' text-sm font-semibold'>*You cannot edit or delete this published blog</p>
+        </h1>
         <div className="mb-4 flex items-center">
           <Image
             src={author.profilePhoto}
@@ -59,7 +61,7 @@ const BlogViewer = ({ blogId, title, content, upVotes, downVotes, author, initia
           <span className="text-gray-300">Upvotes: {voteCount.upvotes} | Downvotes: {voteCount.downvotes}</span>
         </div>
       </div>
-      <div className="z-50 md:w-4/12 w-full px-4 max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
+      <div className="z-50 md:w-4/12 w-full px-4 max-h-lvh overflow-y-scroll scrollbar-thumb-rounded scroll-smooth">
         <h2 className="text-xl text-white mb-2">Comments</h2>
         <ul className="space-y-4">
           {comments.map((comment) => (

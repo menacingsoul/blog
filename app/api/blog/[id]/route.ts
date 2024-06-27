@@ -100,3 +100,32 @@ export async function POST(req: NextRequest, { params }) {
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest, { params }) {
+  try {
+    const { id } = params;
+
+    // Delete comments associated with the blog
+    await prisma.comment.deleteMany({
+      where: {
+        blogId: id,
+      },
+    });
+
+    // Delete the blog
+    await prisma.blog.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({
+      message: "Blog deleted successfully",
+      status: 200,
+    });
+  } catch (error) {
+    console.error("Error deleting blog :", error);
+    return NextResponse.json({
+      error: "Failed to delete blog entry",
+      status: 500,
+    });
+  }
+}

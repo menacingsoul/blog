@@ -15,6 +15,12 @@
   scrollbar-width: 2px;
 
 }
+/* Apply styles to all scrollbars within the comments section */
+.scrollbar-thumb-rounded-comment {
+  scrollbar-color: rgb(140, 59, 197) transparent; 
+  scrollbar-width: thin;
+}
+
 .blog-card:hover {
   @apply transform scale-105 shadow-xl;
 }

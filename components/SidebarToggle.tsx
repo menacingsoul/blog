@@ -10,7 +10,6 @@ const inter = Poppins({
 })
 const links = [
   { href: '/', label: 'Home' },
-  { href: '/people', label: 'People' },
   { href: '/profile', label: 'Profile' },
   { href: '/myblogs', label: 'My Blogs' },
 ];
