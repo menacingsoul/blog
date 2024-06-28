@@ -7,6 +7,7 @@ interface Blog {
   id: string;
   title: string;
   description: string;
+  createdAt:Date;
   author: {
     profilePhoto: string;
     firstName: string;
@@ -17,6 +18,12 @@ interface Blog {
 
 
 const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
+  const creationDate = new Date(blog.createdAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
   return (
     <Link href={`/blog/viewer/${blog.id}`} className=" h-full cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
       border border-[#E2DFD0]/30 shadow-lg hover:shadow-2xl transition-all duration-300
@@ -32,7 +39,7 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         />
       </div>
       <div className="p-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-2 text-white">{blog.title}</h2>
+        <h2 className="text-2xl md:text-3xl font-semibold mb-2 text-white line-clamp-1">{blog.title}</h2>
         <div className='flex mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-2xl w-fit items-center gap-1'>
         <Image
         alt="author image"
@@ -43,8 +50,9 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         />
         <p className="text-gray-900 sm:text-sm text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
         </div>
+        <h4 className=' text-red-100 mb-1 md:text-lg text-sm'>{creationDate}</h4>
         
-        <p className="text-gray-300 line-clamp-2">{blog.description}</p>
+        <p className="text-gray-300 line-clamp-2 md:text-xl">{blog.description}</p>
       </div>
       </div>
     </Link>

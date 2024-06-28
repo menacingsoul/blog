@@ -4,6 +4,7 @@ import BlogCard from '@/components/BlogCard';
 import FeaturedBlogCard from '@/components/FeaturedBlogCard';
 import NewBlogCard from'@/components/NewBlogCard';
 import { ToastContainer } from 'react-toastify';
+import Link from 'next/link';
 const BlogPage = async () => {
   
   // Fetch blogs using Prisma
@@ -28,6 +29,7 @@ const BlogPage = async () => {
   const blogs = await prisma.blog.findMany({
     where:{
       published:true,
+      
     },
     include: {
       author: {
@@ -37,6 +39,8 @@ const BlogPage = async () => {
           profilePhoto: true,
         },
       },
+      
+      
     },
     orderBy: {
       createdAt: 'desc',
@@ -44,8 +48,7 @@ const BlogPage = async () => {
   });
 
   const featuredBlog = mostViewedBlogs.length > 0 ? mostViewedBlogs[0] : null;
-  const recentBlogs = blogs;
-  const otherBlogs = mostViewedBlogs.slice(1);
+  const recentBlogs = blogs.slice(0,3);
 
   
 
@@ -61,20 +64,19 @@ const BlogPage = async () => {
         <div className="mb-4">
           {featuredBlog && <FeaturedBlogCard blog={featuredBlog}/>}
         </div>
-      
-      <div className="text-white p-4 font-bold text-2xl mt-8">
+      <div className='flex justify-between items-center'>
+      <div className="text-white p-4 font-bold text-2xl">
         Recent Blogs
       </div>
+      <div className='text-white p-4 z-50'>
+        <Link href="/blog/blogs">
+        View all
+        </Link>
+      </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scrollbar-thin scrollbar-thumb-rounded">
         {recentBlogs.map(blog => (
-          <BlogCard key={blog.id} blog={blog} />
-        ))}
-      </div>
-      <div className="text-white p-4 font-bold text-2xl mt-8">
-        Other popular Blogs
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scrollbar-thin scrollbar-thumb-rounded">
-        {otherBlogs.map(blog => (
           <BlogCard key={blog.id} blog={blog} />
         ))}
       </div>
