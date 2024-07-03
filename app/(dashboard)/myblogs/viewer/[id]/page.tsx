@@ -15,6 +15,7 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
           firstName: true,
           lastName: true,
           profilePhoto: true,
+          username:true,
         },
     
       },

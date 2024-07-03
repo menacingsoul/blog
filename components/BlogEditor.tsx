@@ -35,6 +35,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [isDeleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
+  const [isSavingDraft,setSavingDraft] = useState(false);
   const router = useRouter();
 
   const handlePublishClick = () => {
@@ -85,7 +86,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       });
 
       if (res.ok) {
-        router.push('/home');
+        router.push('/myblogs');
       } else {
         const errorData = await res.json();
         throw new Error(errorData?.message || 'Failed to publish blog');
@@ -118,10 +119,36 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       }
     },
   });
+  //handle draft
+
+  const handleDraftClick = async()=>{
+    setSavingDraft(true);
+    try {
+      await fetch(`/api/blog/${blogId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, description, content, published: false }),
+      });
+    } catch (error) {
+      console.error('Error autosaving blog:', error);
+    } finally {
+      router.push('/myblogs');
+      setSavingDraft(false);
+    }
+  }
 
   return (
     <>
       {isPublishing && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-8 shadow-md">
+            <Loader2 className="mr-2 h-20 w-20 animate-spin" />
+          </div>
+        </div>
+      )}
+      {isSavingDraft && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-8 shadow-md">
             <Loader2 className="mr-2 h-20 w-20 animate-spin" />
@@ -218,16 +245,19 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             <button onClick={handlePublishClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400">
               Publish
             </button>
+            <button onClick={handleDraftClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-gtay-500 disabled:bg-gray-400">
+              Draft
+            </button>
             <button onClick={handleDeleteClick} className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400">
               Delete
             </button>
-            {isAutosaving && (
-            <div className="flex items-center mb-2">
+          </div>
+          {isAutosaving && (
+            <div className="flex items-center mb-2 mt-2">
               <Loader2 className="h-5 w-5 animate-spin text-gray-300 mr-2" />
               <span className="text-gray-300">Autosaving...</span>
             </div>
           )}
-          </div>
           
 
         </div>

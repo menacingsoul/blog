@@ -8,6 +8,7 @@ import { handleVote, addComment } from '@/utils/api';
 
 interface Author {
     profilePhoto: string;
+    username:string;
     firstName: string;
     lastName: string;
   }
@@ -63,7 +64,7 @@ interface Author {
 
   return (
     <div className='md:flex flex-row '>
-      <div className="w-full md:w-8/12 shadow-lg bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform p-8 rounded">
+      <div className="w-full md:w-8/12 shadow-lg bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform p-8 rounded max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
         <h1 className="text-3xl mb-4 text-white font-bold">{title}</h1>
         <div className="mb-4 flex items-center">
           <Image
@@ -73,14 +74,18 @@ interface Author {
             alt={`${author.firstName} ${author.lastName}`}
             className="w-10 h-10 rounded-full mr-3"
           />
-          <span className="text-gray-300">{`${author.firstName} ${author.lastName}`}</span>
+          <div className=' flex flex-col'>
+          <span className="text-gray-100">{`${author.firstName} ${author.lastName}`}</span>
+          <span className="text-gray-300 text-xs">{`@${author.username}`}</span>
+          </div>
+          
         </div>
         <div className="prose lg:prose-lg text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
           {parse(content)}
         </div>
         <div className="flex flex-col sm:flex-row mt-2 space-x-4 items-center">
         <div className=' flex items-center mt-4 space-x-2 '>
-        <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300">
+        <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
             Upvote
           </button>
           <button onClick={() => onVote('downvote')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
@@ -106,7 +111,7 @@ interface Author {
         </div>
       </div>
       <div className="z-50 md:w-4/12 w-full px-4 max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
-        <h2 className="text-xl text-white mb-2">Comments</h2>
+        <h2 className="text-xl text-white mb-2 p-2">Comments</h2>
         <ul className="space-y-4">
           {comments.map((comment) => (
             <li key={comment.id} className="bg-gray-800 bg-opacity-40 p-4 rounded-lg">
@@ -133,7 +138,7 @@ interface Author {
             placeholder="Add a comment..."
             className="w-full p-2 bg-gray-800 text-gray-200 rounded-lg"
           />
-          <button onClick={onAddComment} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300">
+          <button onClick={onAddComment} className="mt-2 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
             Submit
           </button>
         </div>
