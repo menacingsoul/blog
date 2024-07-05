@@ -3,8 +3,17 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import {Poppins} from 'next/font/google'
+import { Dancing_Script } from 'next/font/google';
+import { Raleway } from 'next/font/google';
+import Image from 'next/image';
 
-const inter = Poppins({
+
+const dScript = Raleway({
+  weight: '400',
+  subsets: ['latin'],
+});
+
+const poppins = Poppins({
   weight: '400',
   subsets: ['latin'],
 })
@@ -36,15 +45,14 @@ const SidebarToggle = () => {
         style={{ zIndex: 1000 }}
       >
         <div className='flex justify-between items-center p-6'>
-          <div className='flex gap-2'>
-            {/* <Image
+          <div className='flex gap-2 items-center'>
+            <Image
               src="/logo.svg" // Replace with your actual logo path
               alt="Mood Diary Logo"
-              width={30}
-              height={30}
-              className="rounded-full"
-            /> */}
-            <div className = {`${inter.className} text-white text-4xl font-extrabold `}>Blog files</div>
+              width={40}
+              height={40}
+            />
+            <div className = {`${dScript.className} text-white md:text=-4xl text-2xl font-extrabold `}>Blog Verse</div>
           </div>
           <button className="md:hidden text-white" onClick={toggleSidebar}>
             <X size={24} />

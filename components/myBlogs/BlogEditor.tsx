@@ -329,7 +329,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                   height={100}
                   width={100}
                   loading='lazy'
-                  quality={100}
+                  unoptimized={true}
                 alt="Blog Image" className="absolute inset-0 w-full h-full object-cover rounded bg-gray-200" />
               </div>
             )}

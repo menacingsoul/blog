@@ -10,8 +10,8 @@ const inter = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'Blog Files',
-  description: 'A web journal app for your daily writing needs',
+  title: 'Blog Verse',
+  description: 'A web blogging app for everyone',
 }
 
 export default function RootLayout({

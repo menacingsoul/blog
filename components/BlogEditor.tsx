@@ -7,6 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Loader2 } from 'lucide-react';
 import { useAutosave } from 'react-autosave';
 import { deleteBlog } from '@/utils/api';
+import Image from 'next/image';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -87,7 +88,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description, content, bool:true , imageUrl }),
+        body: JSON.stringify({ title, description, content, bool: true, imageUrl }),
       });
 
       if (res.ok) {
@@ -139,6 +140,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         console.error('Error autosaving blog:', error);
       } finally {
         setIsAutosaving(false);
+        console.log("Hey this is the image url",imageUrl);
       }
     },
   });
@@ -163,6 +165,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
 
         const data = await response.json();
         setImageUrl(data.secure_url);
+       
         setShowUploadDrawer(false); // Close the drawer after upload
       } catch (error) {
         console.error('Error uploading image:', error);
@@ -172,6 +175,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       }
     }
   };
+  
 
   return (
     <>
@@ -262,8 +266,12 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             )}
             {imageUrl && (
               <div className="relative pb-[56.25%] mb-4">
-                <img
+                <Image
                   src={imageUrl}
+                  height={100}
+                  width={100}
+                  loading='lazy'
+                  unoptimized ={true}
                   alt="Uploaded preview"
                   className="absolute inset-0 w-full h-full object-cover bg-gray-200"
                 />
@@ -316,7 +324,13 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="mt-4">
             {imageUrl && (
               <div className="relative pb-[56.25%] mb-4">
-                <img src={imageUrl} alt="Blog Image" className="absolute inset-0 w-full h-full object-cover bg-gray-200" />
+                <Image
+                  src={imageUrl}
+                  height={100}
+                  width={100}
+                  loading='lazy'
+                  unoptimized={true}
+                alt="Blog Image" className="absolute inset-0 w-full h-full object-cover rounded bg-gray-200" />
               </div>
             )}
             <button

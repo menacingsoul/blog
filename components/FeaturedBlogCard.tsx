@@ -3,21 +3,41 @@
 
 import Link from 'next/link';
 import Image from 'next/image'; 
+import { useRouter } from 'next/navigation';
+
+interface View {
+  id: string;
+  blog: Blog;
+}
+
 interface Blog {
   id: string;
   title: string;
   description: string;
-  createdAt:Date;
+  createdAt: Date;
+  views: View;
   author: {
     profilePhoto: string;
     firstName: string;
     lastName: string;
   };
-  
 }
 
 
+
+
 const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
+  const router = useRouter();
+  const handleClick = async () => {
+    try {
+      await fetch(`/api/views/${blog.id}`, {
+        method: 'POST',
+      });
+      router.push(`/blog/viewer/${blog.id}`);
+    } catch (error) {
+      console.error('Failed to record view:', error);
+    }
+  };
   const creationDate = new Date(blog.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -25,7 +45,7 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
     timeZone: 'Asia/Kolkata',
   });
   return (
-    <Link href={`/blog/viewer/${blog.id}`} className=" h-full cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
+    <div onClick={handleClick} className=" h-full cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
       border border-[#E2DFD0]/30 shadow-lg hover:shadow-2xl transition-all duration-300
       hover:bg-gradient-to-b flex items-center mb-4">
         <div className='flex flex-col sm:flex-row p-2 '>
@@ -55,7 +75,7 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         <p className="text-gray-300 line-clamp-2 md:text-xl">{blog.description}</p>
       </div>
       </div>
-    </Link>
+    </div>
     
   );
 }
