@@ -43,26 +43,20 @@ export const fetchBlog = async (id: string) => {
   }
 };
 
-export const handleVote = async (id: string, voteType: 'upvote' | 'downvote') => {
-  try {
-    const res = await fetch(createURL(`/api/blog/${id}`), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ type: voteType }),
-    });
+export const handleVote = async (blogId: string, voteType: 'upvote' | 'downvote') => {
+  const response = await fetch(`/api/vote/blog/${blogId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ type: voteType }),
+  });
 
-    if (!res.ok) {
-      throw new Error('Failed to handle vote');
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error('Error handling vote:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error('Failed to cast vote');
   }
+
+  return response.json();
 };
 
 export const addComment = async (id: string, content: string) => {

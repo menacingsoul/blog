@@ -37,6 +37,7 @@ const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
           initialDescription={blog.description} 
           initialContent={blog.content} 
           initialTitle={blog.title} 
+          initialImageUrl={blog.imageUrl}
         />
       </div>
     </div>

@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
         title: 'Untitled Blog',
         description:'',
         content: '',
-        views: 0,
         published: false,
         authorId: user.id,
       },

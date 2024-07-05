@@ -22,9 +22,6 @@ const myBlogPage = async () => {
         },
       },
     },
-    orderBy: {
-      views: 'desc',
-    },
   });
 
   const unpublishedBlogs = await prisma.blog.findMany({
@@ -40,9 +37,6 @@ const myBlogPage = async () => {
           profilePhoto: true,
         },
       },
-    },
-    orderBy: {
-      views: 'desc',
     },
   });
 

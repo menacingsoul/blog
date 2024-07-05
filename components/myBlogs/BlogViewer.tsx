@@ -3,36 +3,37 @@
 import React, { useState } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
-import { TwitterShareButton, WhatsappShareButton, TelegramShareButton,FacebookShareButton,TelegramIcon,XIcon,WhatsappIcon, FacebookIcon } from 'react-share';
+import { TwitterShareButton, WhatsappShareButton, TelegramShareButton, FacebookShareButton, TelegramIcon, XIcon, WhatsappIcon, FacebookIcon } from 'react-share';
 import { handleVote, addComment } from '@/utils/api';
-
+import { EyeIcon } from 'lucide-react';
 interface Author {
-    profilePhoto: string;
-    username:string;
-    firstName: string;
-    lastName: string;
-  }
-  
-  interface Comment {
-    id: string;
-    author: Author;
-    content: string;
-  }
-  
-  interface BlogViewerProps {
-    blogId: string;
-    title: string;
-    content: string;
-    upVotes: number;
-    downVotes: number;
-    author: Author;
-    initialComments: Comment[];
-  }
-  
-  
-  const BlogViewer: React.FC<BlogViewerProps> = ({ 
-      blogId, title, content, upVotes, downVotes, author, initialComments 
-  }) => {
+  profilePhoto: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface Comment {
+  id: string;
+  author: Author;
+  content: string;
+}
+
+interface BlogViewerProps {
+  blogId: string;
+  title: string;
+  content: string;
+  upVotes: number;
+  downVotes: number;
+  author: Author;
+  imageUrl:string;
+  initialComments: Comment[];
+  viewCount: number;  // Add viewCount prop
+}
+
+const BlogViewer: React.FC<BlogViewerProps> = ({ 
+  blogId, title, content, upVotes, downVotes, author, initialComments, viewCount ,imageUrl
+}) => {
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState('');
   const [voteCount, setVoteCount] = useState({ upvotes: upVotes, downvotes: downVotes });
@@ -71,29 +72,37 @@ interface Author {
             src={author.profilePhoto}
             height={100}
             width={100}
+            loading='lazy'
             alt={`${author.firstName} ${author.lastName}`}
             className="w-10 h-10 rounded-full mr-3"
           />
-          <div className=' flex flex-col'>
-          <span className="text-gray-100">{`${author.firstName} ${author.lastName}`}</span>
-          <span className="text-gray-300 text-xs">{`@${author.username}`}</span>
+          <div className='flex flex-col'>
+            <span className="text-gray-100">{`${author.firstName} ${author.lastName}`}</span>
+            <span className="text-gray-300 text-xs">{`@${author.username}`}</span>
           </div>
-          
         </div>
-        <div className="prose lg:prose-lg text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
+        <Image
+        src={imageUrl}
+        unoptimized={true}
+        height={100}
+        width={100}
+        alt='blog_image'
+        className='w-full bg-white p-3 rounded'
+        />
+        <div className="prose mt-3 lg:prose-lg text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
           {parse(content)}
         </div>
         <div className="flex flex-col sm:flex-row mt-2 space-x-4 items-center">
-        <div className=' flex items-center mt-4 space-x-2 '>
-        <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
-            Upvote
-          </button>
-          <button onClick={() => onVote('downvote')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
-            Downvote
-          </button>    
-        </div>
-          
+          <div className='flex items-center mt-4 space-x-2'>
+            <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
+              Upvote
+            </button>
+            <button onClick={() => onVote('downvote')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
+              Downvote
+            </button>
+          </div>
           <span className="text-gray-300 mt-2">Upvotes: {voteCount.upvotes} | Downvotes: {voteCount.downvotes}</span>
+          <div className="text-gray-300 mt-2 "><div className='flex'><EyeIcon/> : {viewCount}</div></div>  {/* Display view count */}
         </div>
         <div className="flex mt-4 space-x-4">
           <TwitterShareButton url={shareUrl} title={shareTitle}>

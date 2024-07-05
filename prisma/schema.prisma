@@ -29,8 +29,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  posts    Blog[]
-  comments Comment[]
+  posts       Blog[]
+  comments    Comment[]
+  votes       Vote[]
+  views       View[]
 
   following User[] @relation("Follows")
   followers User[] @relation("Follows")
@@ -41,7 +43,7 @@ model Blog {
   title       String
   description String
   content     String
-  views       Int
+  imageUrl    String?  @default("https://img.freepik.com/free-photo/toy-bricks-table-with-word-blog_144627-47465.jpg?w=1480&t=st=1720193706~exp=1720194306~hmac=b12115389687537a559f6ad8fddb0682814b965085bbacafff75ac86dc6e6398")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   published   Boolean  @default(false)
@@ -50,7 +52,9 @@ model Blog {
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
 
-  comments Comment[]
+  comments    Comment[]
+  votes       Vote[]
+  views       View[]
 }
 
 model Comment {
@@ -64,4 +68,31 @@ model Comment {
   authorId  String
   blog      Blog     @relation(fields: [blogId], references: [id])
   blogId    String
+
+  votes     Vote[]
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  upVote    Boolean
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  blog      Blog?    @relation(fields: [blogId], references: [id])
+  blogId    String?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId String?
+
+  @@unique([userId, blogId]) // Ensure unique votes per user per blog
+}
+
+model View {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  blogId    String
+
+  @@unique([userId, blogId]) // Ensure unique views per user per blog
 }

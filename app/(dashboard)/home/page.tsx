@@ -3,7 +3,6 @@ import { prisma } from '@/utils/db';
 import BlogCard from '@/components/BlogCard';
 import FeaturedBlogCard from '@/components/FeaturedBlogCard';
 import NewBlogCard from'@/components/NewBlogCard';
-import { ToastContainer } from 'react-toastify';
 import Link from 'next/link';
 const BlogPage = async () => {
   
@@ -19,7 +18,7 @@ const BlogPage = async () => {
           lastName: true,
           profilePhoto: true,
         },
-      },
+      }
     },
     orderBy: {
       upVotes: 'desc',
@@ -39,6 +38,7 @@ const BlogPage = async () => {
           profilePhoto: true,
         },
       },
+      views:true,
       
       
     },

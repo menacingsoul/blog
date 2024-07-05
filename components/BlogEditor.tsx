@@ -4,7 +4,7 @@ import React, { useState, FormEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import 'react-quill/dist/quill.snow.css';
-import { Loader2} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAutosave } from 'react-autosave';
 import { deleteBlog } from '@/utils/api';
 
@@ -15,6 +15,7 @@ interface BlogEditorProps {
   initialDescription: string;
   initialContent: string;
   initialTitle: string;
+  initialImageUrl: string;
 }
 
 interface BlogData {
@@ -22,27 +23,31 @@ interface BlogData {
   description: string;
   content: string;
   published: boolean;
+  imageUrl?: string;
 }
 
 const BlogEditor: React.FC<BlogEditorProps> = ({ 
-  blogId, initialDescription, initialContent, initialTitle 
+  blogId, initialDescription, initialContent, initialTitle, initialImageUrl 
 }) => {
   const [content, setContent] = useState(initialContent || '');
   const [description, setDescription] = useState(initialDescription || '');
   const [title, setTitle] = useState(initialTitle || '');
+  const [imageUrl, setImageUrl] = useState(initialImageUrl || '');
   const [isPublishing, setPublishing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
-  const [isSavingDraft,setSavingDraft] = useState(false);
+  const [isSavingDraft, setSavingDraft] = useState(false);
+  const [isUploading, setUploading] = useState(false);
+  const [showUploadDrawer, setShowUploadDrawer] = useState(false);
   const router = useRouter();
 
   const handlePublishClick = () => {
     setShowConfirm(true);
   };
 
-  const handleContentChange = (value:string) => {
+  const handleContentChange = (value: string) => {
     setContent(value);
   };
 
@@ -82,7 +87,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description, content, bool:true }),
+        body: JSON.stringify({ title, description, content, bool:true , imageUrl }),
       });
 
       if (res.ok) {
@@ -99,18 +104,36 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     }
   };
 
+  const handleDraftClick = async () => {
+    setSavingDraft(true);
+    try {
+      await fetch(`/api/blog/${blogId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, description, content, published: false, imageUrl }),
+      });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    } finally {
+      router.push('/myblogs');
+      setSavingDraft(false);
+    }
+  };
+
   // Autosave functionality
   useAutosave({
-    data: { title, description, content },
-    onSave: async ({ title, description, content }) => {
+    data: { title, description, content, imageUrl },
+    onSave: async ({ title, description, content, imageUrl }) => {
       setIsAutosaving(true);
       try {
         await fetch(`/api/blog/${blogId}`, {
           method: 'PATCH',
           headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ title, description, content, published: false }),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, description, content, published: false, imageUrl }),
         });
       } catch (error) {
         console.error('Error autosaving blog:', error);
@@ -119,25 +142,36 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       }
     },
   });
-  //handle draft
 
-  const handleDraftClick = async()=>{
-    setSavingDraft(true);
-    try {
-      await fetch(`/api/blog/${blogId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title, description, content, published: false }),
-      });
-    } catch (error) {
-      console.error('Error autosaving blog:', error);
-    } finally {
-      router.push('/myblogs');
-      setSavingDraft(false);
+  // Handle image upload
+  const handleUploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', event.target.files[0]);
+        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
+
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Image upload failed');
+        }
+
+        const data = await response.json();
+        setImageUrl(data.secure_url);
+        setShowUploadDrawer(false); // Close the drawer after upload
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image.');
+      } finally {
+        setUploading(false);
+      }
     }
-  }
+  };
 
   return (
     <>
@@ -209,11 +243,47 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         </div>
       )}
 
-      <div className=" max-h-full flex justify-center ">
+      {/* Image Upload Drawer */}
+      {showUploadDrawer && (
+        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Upload Image</h2>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUploadImage}
+              className="mb-4"
+            />
+            {isUploading && (
+              <div className="flex items-center mb-2">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-500 mr-2" />
+                <span className="text-gray-500">Uploading...</span>
+              </div>
+            )}
+            {imageUrl && (
+              <div className="relative pb-[56.25%] mb-4">
+                <img
+                  src={imageUrl}
+                  alt="Uploaded preview"
+                  className="absolute inset-0 w-full h-full object-cover bg-gray-200"
+                />
+              </div>
+            )}
+            <button
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => setShowUploadDrawer(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className=" max-h-full flex flex-col items-center ">
         <div className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
   border border-white/30 hover:border-white/50
   hover:shadow-2xl transition-all duration-300 transform p-4 rounded-lg w-full">
-          
+
           <div className=' flex items-center mb-2'>
             <div className='p-2 text-white text-lg font-semibold'>
               Title:
@@ -241,11 +311,27 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           </div>
 
           <ReactQuill value={content} onChange={handleContentChange} className=' text-zinc-200 bg-gradient-to-br from-white/5 to-white/10 backdrop-filter backdrop-blur-lg outline-none' />
+
+          {/* Image URL display and upload button */}
+          <div className="mt-4">
+            {imageUrl && (
+              <div className="relative pb-[56.25%] mb-4">
+                <img src={imageUrl} alt="Blog Image" className="absolute inset-0 w-full h-full object-cover bg-gray-200" />
+              </div>
+            )}
+            <button
+              onClick={() => setShowUploadDrawer(true)}
+              className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white"
+            >
+              {imageUrl ? 'Change Image' : 'Upload Image'}
+            </button>
+          </div>
+
           <div className='flex gap-3 items-center'>
             <button onClick={handlePublishClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400">
               Publish
             </button>
-            <button onClick={handleDraftClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-gtay-500 disabled:bg-gray-400">
+            <button onClick={handleDraftClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-gray-500 disabled:bg-gray-400">
               Draft
             </button>
             <button onClick={handleDeleteClick} className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400">
@@ -258,8 +344,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
               <span className="text-gray-300">Autosaving...</span>
             </div>
           )}
-          
-
         </div>
       </div>
     </>
