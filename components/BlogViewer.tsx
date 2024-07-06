@@ -5,7 +5,8 @@ import parse from 'html-react-parser';
 import Image from 'next/image';
 import { TwitterShareButton, WhatsappShareButton, TelegramShareButton, FacebookShareButton, TelegramIcon, XIcon, WhatsappIcon, FacebookIcon } from 'react-share';
 import { handleVote, addComment } from '@/utils/api';
-import { EyeIcon } from 'lucide-react';
+import { EyeIcon, Share, X } from 'lucide-react';
+import { ArrowBigDownIcon, ArrowBigUpIcon,Clipboard } from 'lucide-react';
 interface Author {
   profilePhoto: string;
   username: string;
@@ -37,6 +38,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState('');
   const [voteCount, setVoteCount] = useState({ upvotes: upVotes, downvotes: downVotes });
+  const [shareDialogBox,setShareDialogBox] = useState(false);
 
   const onVote = async (voteType: 'upvote' | 'downvote') => {
     try {
@@ -49,6 +51,10 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
       console.error('Error handling vote:', error);
     }
   };
+
+  const onShareClick=()=>{
+    setShareDialogBox(true);
+  }
 
   const onAddComment = async () => {
     try {
@@ -64,9 +70,60 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   const shareTitle = title;
 
   return (
+    <>
+    {shareDialogBox && (
+  <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
+    <div className="overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
+      <div className="flex justify-between mb-4 text-xl font-semibold text-amber-100">
+        <div>Share</div>
+        <div className="cursor-pointer" onClick={() => { setShareDialogBox(false) }}>
+          <X />
+        </div>
+      </div>
+      <h2 className="md:text-xl text-lg gap-x-1 font-semibold mb-4 text-gray-300">
+        {title}
+      </h2>
+      <div className="flex justify-center mt-4 space-x-4">
+        <TwitterShareButton url={shareUrl} title={shareTitle}>
+          <XIcon size={32} round />
+        </TwitterShareButton>
+        <WhatsappShareButton url={shareUrl} title={shareTitle}>
+          <WhatsappIcon size={32} round />
+        </WhatsappShareButton>
+        <TelegramShareButton url={shareUrl} title={shareTitle}>
+          <TelegramIcon size={32} round />
+        </TelegramShareButton>
+        <FacebookShareButton url={shareUrl} title={shareTitle}>
+          <FacebookIcon size={32} round />
+        </FacebookShareButton>
+      </div>
+      <div className="mt-4 flex items-center space-x-2">
+        <input
+          type="text"
+          value={shareUrl}
+          readOnly
+          className="w-full p-2 text-gray-800 bg-gray-200 rounded"
+        />
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(shareUrl);
+            alert('URL copied to clipboard!');
+          }}
+          className="text-white"
+        >
+          <Clipboard size={24} className="text-gray-300 hover:text-white" />
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     <div className='md:flex flex-row '>
       <div className="w-full md:w-8/12 shadow-lg bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform p-8 rounded max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
-        <h1 className="text-3xl mb-4 text-white font-bold">{title}</h1>
+        <div className='flex justify-between items-center mb-4'>
+          <h1 className="md:text-3xl text-2xl text-white font-bold">{title}</h1>
+          <div className='text-white cursor-pointer' onClick={onShareClick}><Share/></div>
+        </div>
+        
         <div className="mb-4 flex items-center">
           <Image
             src={author.profilePhoto}
@@ -94,29 +151,14 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
         </div>
         <div className="flex flex-col sm:flex-row mt-2 space-x-4 items-center">
           <div className='flex items-center mt-4 space-x-2'>
-            <button onClick={() => onVote('upvote')} className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
-              Upvote
+            <button onClick={() => onVote('upvote')} className="flex px-4 gap-x-2 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
+              <ArrowBigUpIcon/>{voteCount.upvotes}
             </button>
-            <button onClick={() => onVote('downvote')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
-              Downvote
+            <button onClick={() => onVote('downvote')} className="flex px-4 gap-x-2  py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
+              <ArrowBigDownIcon/>{voteCount.downvotes}
             </button>
           </div>
-          <span className="text-gray-300 mt-2">Upvotes: {voteCount.upvotes} | Downvotes: {voteCount.downvotes}</span>
-          <div className="text-gray-300 mt-2 "><div className='flex'><EyeIcon/> : {viewCount}</div></div>  {/* Display view count */}
-        </div>
-        <div className="flex mt-4 space-x-4">
-          <TwitterShareButton url={shareUrl} title={shareTitle}>
-            <XIcon size={32} round />
-          </TwitterShareButton>
-          <WhatsappShareButton url={shareUrl} title={shareTitle}>
-            <WhatsappIcon size={32} round />
-          </WhatsappShareButton>
-          <TelegramShareButton url={shareUrl} title={shareTitle}>
-            <TelegramIcon size={32} round />
-          </TelegramShareButton>
-          <FacebookShareButton url={shareUrl} title={shareTitle}>
-            <FacebookIcon size={32} round />
-          </FacebookShareButton>
+          <div className="text-gray-300 items-center"><div className='flex gap-x-1 items-center'><EyeIcon/> {viewCount}</div></div>  {/* Display view count */}
         </div>
       </div>
       <div className="z-50 md:w-4/12 w-full px-4 max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
@@ -153,6 +195,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState, FormEvent } from 'react';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
-import 'react-quill/dist/quill.snow.css';
-import { Loader2, X } from 'lucide-react';
-import { useAutosave } from 'react-autosave';
-import { deleteBlog } from '@/utils/api';
-import Image from 'next/image';
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import React, { useState, FormEvent } from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import "react-quill/dist/quill.snow.css";
+import { Loader2, X, UploadCloud } from "lucide-react";
+import { useAutosave } from "react-autosave";
+import { deleteBlog } from "@/utils/api";
+import Image from "next/image";
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 interface BlogEditorProps {
   blogId: string;
@@ -26,13 +26,17 @@ interface BlogData {
   imageUrl?: string;
 }
 
-const BlogEditor: React.FC<BlogEditorProps> = ({ 
-  blogId, initialDescription, initialContent, initialTitle, initialImageUrl 
+const BlogEditor: React.FC<BlogEditorProps> = ({
+  blogId,
+  initialDescription,
+  initialContent,
+  initialTitle,
+  initialImageUrl,
 }) => {
-  const [content, setContent] = useState(initialContent || '');
-  const [description, setDescription] = useState(initialDescription || '');
-  const [title, setTitle] = useState(initialTitle || '');
-  const [imageUrl, setImageUrl] = useState(initialImageUrl || '');
+  const [content, setContent] = useState(initialContent || "");
+  const [description, setDescription] = useState(initialDescription || "");
+  const [title, setTitle] = useState(initialTitle || "");
+  const [imageUrl, setImageUrl] = useState(initialImageUrl || "");
   const [isPublishing, setPublishing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
@@ -70,9 +74,9 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     try {
       setShowConfirm(false);
       await deleteBlog(blogId);
-      router.push('/myblogs');
+      router.push("/myblogs");
     } catch (error) {
-      console.error('Delete failed:', error);
+      console.error("Delete failed:", error);
     } finally {
       setDeleting(false);
     }
@@ -84,22 +88,28 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     try {
       setShowConfirm(false);
       const res = await fetch(`/api/blog/${blogId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title, description, content, bool:true , imageUrl }),
+        body: JSON.stringify({
+          title,
+          description,
+          content,
+          bool: true,
+          imageUrl,
+        }),
       });
 
       if (res.ok) {
-        router.push('/myblogs');
+        router.push("/myblogs");
       } else {
         const errorData = await res.json();
-        throw new Error(errorData?.message || 'Failed to publish blog');
+        throw new Error(errorData?.message || "Failed to publish blog");
       }
     } catch (error) {
-      console.error('Error publishing blog:', error);
-      alert('Error publishing blog.');
+      console.error("Error publishing blog:", error);
+      alert("Error publishing blog.");
     } finally {
       setPublishing(false);
     }
@@ -109,16 +119,22 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     setSavingDraft(true);
     try {
       await fetch(`/api/blog/${blogId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title, description, content, published: false, imageUrl }),
+        body: JSON.stringify({
+          title,
+          description,
+          content,
+          published: false,
+          imageUrl,
+        }),
       });
     } catch (error) {
-      console.error('Error saving draft:', error);
+      console.error("Error saving draft:", error);
     } finally {
-      router.push('/myblogs');
+      router.push("/myblogs");
       setSavingDraft(false);
     }
   };
@@ -130,14 +146,20 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setIsAutosaving(true);
       try {
         await fetch(`/api/blog/${blogId}`, {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title, description, content, published: false, imageUrl }),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            content,
+            published: false,
+            imageUrl,
+          }),
         });
       } catch (error) {
-        console.error('Error autosaving blog:', error);
+        console.error("Error autosaving blog:", error);
       } finally {
         setIsAutosaving(false);
       }
@@ -145,49 +167,56 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   });
 
   // Handle image upload
-  const handleUploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImage = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (event.target.files && event.target.files[0]) {
       setUploading(true);
       setUploadProgress(0);
       const file = event.target.files[0];
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
-  
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ""
+      );
+
       const xhr = new XMLHttpRequest();
-  
-      xhr.upload.addEventListener('progress', (event) => {
+
+      xhr.upload.addEventListener("progress", (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
           setUploadProgress(percentComplete);
         }
       });
-  
-      xhr.upload.addEventListener('load', () => {
+
+      xhr.upload.addEventListener("load", () => {
         setUploadProgress(100);
       });
-  
-      xhr.addEventListener('load', () => {
+
+      xhr.addEventListener("load", () => {
         if (xhr.status === 200) {
           const response = JSON.parse(xhr.responseText);
           setImageUrl(response.secure_url);
           setShowUploadDrawer(false); // Close the drawer after upload
         } else {
-          alert('Failed to upload image.');
+          alert("Failed to upload image.");
         }
         setUploading(false);
       });
-  
-      xhr.addEventListener('error', () => {
-        alert('Failed to upload image.');
+
+      xhr.addEventListener("error", () => {
+        alert("Failed to upload image.");
         setUploading(false);
       });
-  
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`);
+
+      xhr.open(
+        "POST",
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`
+      );
       xhr.send(formData);
     }
   };
-  
 
   return (
     <>
@@ -207,10 +236,16 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       )}
       {showConfirm && (
         <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
-      border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-300">Confirm Publish</h2>
-            <p className=' text-gray-200'>Once published you cannot edit/delete the blog?</p>
+          <div
+            className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
+      border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6"
+          >
+            <h2 className="text-xl font-semibold mb-4 text-gray-300">
+              Confirm Publish
+            </h2>
+            <p className=" text-gray-200">
+              Once published you cannot edit/delete the blog?
+            </p>
             <div className="flex justify-end mt-6">
               <button
                 className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
@@ -237,10 +272,16 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       )}
       {showConfirmDelete && (
         <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
-      border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-300">Confirm Delete</h2>
-            <p className=' text-gray-200'>Once deleted you cannot retrieve this blog?</p>
+          <div
+            className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg
+      border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6"
+          >
+            <h2 className="text-xl font-semibold mb-4 text-gray-300">
+              Confirm Delete
+            </h2>
+            <p className=" text-gray-200">
+              Once deleted you cannot retrieve this blog?
+            </p>
             <div className="flex justify-end mt-6">
               <button
                 className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
@@ -261,76 +302,70 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
 
       {/* Image Upload Drawer */}
       {showUploadDrawer && (
-  <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-    <div className="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
-      <div className=' flex justify-between items-center mb-4'>
-        <h2 className="text-xl font-semibold text-gray-800">Upload Image</h2>
-      <div className=' cursor-pointer' onClick={() => setShowUploadDrawer(false)}><X/></div>
-      </div>
-      
-      <div
-        className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer"
-        onClick={() => document.getElementById('fileInput').click()}
-      >
-        <svg
-          className="w-12 h-12 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M12 4v16m8-8H4"
-          ></path>
-        </svg>
-      </div>
-      <input
-        id="fileInput"
-        type="file"
-        accept="image/*"
-        onChange={handleUploadImage}
-        className="hidden"
-      />
-      {isUploading && (
-        <div className="relative pt-1 mt-4">
-          <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-300">
-            <div
-              style={{ width: `${uploadProgress}%` }}
-              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-500"
-            ></div>
-          </div>
-          <div className="flex justify-center mt-1 text-xs text-gray-600">
-            
-            <span>{Math.round(uploadProgress)}%</span>
-            
-          </div>
-        </div>
-      )}
-      {imageUrl && (
-        <div className="relative pb-[56.25%] mb-4 mt-4">
-          <Image unoptimized={true} height={100} width={100} src={imageUrl} 
-            alt="Uploaded preview"
-            className="absolute inset-0 w-full h-full object-cover bg-gray-200 rounded"
-          />
-        </div>
-      )}
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
+            <div className=" flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Upload Image
+              </h2>
+              <div
+                className=" cursor-pointer"
+                onClick={() => setShowUploadDrawer(false)}
+              >
+                <X />
+              </div>
+            </div>
 
+            <div
+              className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer"
+              onClick={() => document.getElementById("fileInput").click()}
+            >
+              <UploadCloud className="w-12 h-12 text-gray-400" />
+            </div>
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              onChange={handleUploadImage}
+              className="hidden"
+            />
+            {isUploading && (
+              <div className="relative pt-1 mt-4">
+                <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-300">
+                  <div
+                    style={{ width: `${uploadProgress}%` }}
+                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-500"
+                  ></div>
+                </div>
+                <div className="flex justify-center mt-1 text-xs text-gray-600">
+                  <span>{Math.round(uploadProgress)}%</span>
+                </div>
+              </div>
+            )}
+            {imageUrl && (
+              <div className="relative pb-[56.25%] mb-4 mt-4">
+                <Image
+                  unoptimized={true}
+                  height={100}
+                  width={100}
+                  src={imageUrl}
+                  alt="Uploaded preview"
+                  className="absolute inset-0 w-full h-full object-cover bg-gray-200 rounded"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className=" max-h-full flex flex-col items-center ">
-        <div className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
+        <div
+          className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
   border border-white/30 hover:border-white/50
-  hover:shadow-2xl transition-all duration-300 transform p-4 rounded-lg w-full">
-
-          <div className=' flex items-center mb-2'>
-            <div className='p-2 text-white text-lg font-semibold'>
-              Title:
-            </div>
+  hover:shadow-2xl transition-all duration-300 transform p-4 rounded-lg w-full"
+        >
+          <div className=" flex items-center mb-2">
+            <div className="p-2 text-white text-lg font-semibold">Title:</div>
             <input
               type="text"
               value={title}
@@ -340,8 +375,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             />
           </div>
 
-          <div className=' flex items-center mb-4'>
-            <div className=' p-2 text-white text-lg font-semibold'>
+          <div className=" flex items-center mb-4">
+            <div className=" p-2 text-white text-lg font-semibold">
               Description:
             </div>
             <input
@@ -353,31 +388,51 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             />
           </div>
 
-          <ReactQuill value={content} onChange={handleContentChange} className=' text-zinc-200 bg-gradient-to-br from-white/5 to-white/10 backdrop-filter backdrop-blur-lg outline-none' />
+          <ReactQuill
+            value={content}
+            onChange={handleContentChange}
+            className=" text-zinc-200 bg-gradient-to-br from-white/5 to-white/10 backdrop-filter backdrop-blur-lg outline-none"
+          />
 
           {/* Image URL display and upload button */}
           <div className="mt-4">
             {imageUrl && (
               <div className="relative pb-[56.25%] mb-2">
-                <Image unoptimized={true} height={100} width={100} src={imageUrl} alt="Blog Image" className="absolute inset-0 w-full h-full p-2 rounded object-cover bg-gray-200" />
+                <Image
+                  unoptimized={true}
+                  height={100}
+                  width={100}
+                  src={imageUrl}
+                  alt="Blog Image"
+                  className="absolute inset-0 w-full h-full p-2 rounded object-cover bg-gray-200"
+                />
               </div>
             )}
             <div
               onClick={() => setShowUploadDrawer(true)}
-              className="p-2 cursor-pointer  w-full rounded-lg bg-white text-black text-center"
+              className="p-2 flex cursor-pointer gap-x-2 w-full rounded bg-white text-black items-center font-semibold justify-center"
             >
-              {imageUrl ? 'Change Image' : 'Upload Image'}
+              Upload <UploadCloud/>
             </div>
           </div>
 
-          <div className='flex gap-3 items-center'>
-            <button onClick={handlePublishClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400">
+          <div className="flex gap-3 items-center">
+            <button
+              onClick={handlePublishClick}
+              className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400"
+            >
               Publish
             </button>
-            <button onClick={handleDraftClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-gray-500 disabled:bg-gray-400">
+            <button
+              onClick={handleDraftClick}
+              className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-gray-500 disabled:bg-gray-400"
+            >
               Draft
             </button>
-            <button onClick={handleDeleteClick} className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400">
+            <button
+              onClick={handleDeleteClick}
+              className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400"
+            >
               Delete
             </button>
           </div>
