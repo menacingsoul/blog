@@ -4,11 +4,10 @@ import React, { useState, FormEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import 'react-quill/dist/quill.snow.css';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useAutosave } from 'react-autosave';
 import { deleteBlog } from '@/utils/api';
 import Image from 'next/image';
-
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 interface BlogEditorProps {
@@ -42,6 +41,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [isSavingDraft, setSavingDraft] = useState(false);
   const [isUploading, setUploading] = useState(false);
   const [showUploadDrawer, setShowUploadDrawer] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const router = useRouter();
 
   const handlePublishClick = () => {
@@ -88,7 +88,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description, content, bool: true, imageUrl }),
+        body: JSON.stringify({ title, description, content, bool:true , imageUrl }),
       });
 
       if (res.ok) {
@@ -140,7 +140,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         console.error('Error autosaving blog:', error);
       } finally {
         setIsAutosaving(false);
-        console.log("Hey this is the image url",imageUrl);
       }
     },
   });
@@ -149,30 +148,43 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const handleUploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append('file', event.target.files[0]);
-        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
-
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Image upload failed');
+      setUploadProgress(0);
+      const file = event.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
+  
+      const xhr = new XMLHttpRequest();
+  
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(percentComplete);
         }
-
-        const data = await response.json();
-        setImageUrl(data.secure_url);
-       
-        setShowUploadDrawer(false); // Close the drawer after upload
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        alert('Failed to upload image.');
-      } finally {
+      });
+  
+      xhr.upload.addEventListener('load', () => {
+        setUploadProgress(100);
+      });
+  
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+          setImageUrl(response.secure_url);
+          setShowUploadDrawer(false); // Close the drawer after upload
+        } else {
+          alert('Failed to upload image.');
+        }
         setUploading(false);
-      }
+      });
+  
+      xhr.addEventListener('error', () => {
+        alert('Failed to upload image.');
+        setUploading(false);
+      });
+  
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`);
+      xhr.send(formData);
     }
   };
   
@@ -249,43 +261,66 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
 
       {/* Image Upload Drawer */}
       {showUploadDrawer && (
-        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Upload Image</h2>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleUploadImage}
-              className="mb-4"
-            />
-            {isUploading && (
-              <div className="flex items-center mb-2">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-500 mr-2" />
-                <span className="text-gray-500">Uploading...</span>
-              </div>
-            )}
-            {imageUrl && (
-              <div className="relative pb-[56.25%] mb-4">
-                <Image
-                  src={imageUrl}
-                  height={100}
-                  width={100}
-                  loading='lazy'
-                  unoptimized ={true}
-                  alt="Uploaded preview"
-                  className="absolute inset-0 w-full h-full object-cover bg-gray-200"
-                />
-              </div>
-            )}
-            <button
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => setShowUploadDrawer(false)}
-            >
-              Close
-            </button>
+  <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
+    <div className="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
+      <div className=' flex justify-between items-center mb-4'>
+        <h2 className="text-xl font-semibold text-gray-800">Upload Image</h2>
+      <div className=' cursor-pointer' onClick={() => setShowUploadDrawer(false)}><X/></div>
+      </div>
+      
+      <div
+        className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer"
+        onClick={() => document.getElementById('fileInput').click()}
+      >
+        <svg
+          className="w-12 h-12 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 4v16m8-8H4"
+          ></path>
+        </svg>
+      </div>
+      <input
+        id="fileInput"
+        type="file"
+        accept="image/*"
+        onChange={handleUploadImage}
+        className="hidden"
+      />
+      {isUploading && (
+        <div className="relative pt-1 mt-4">
+          <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-300">
+            <div
+              style={{ width: `${uploadProgress}%` }}
+              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-500"
+            ></div>
+          </div>
+          <div className="flex justify-center mt-1 text-xs text-gray-600">
+            
+            <span>{Math.round(uploadProgress)}%</span>
+            
           </div>
         </div>
       )}
+      {imageUrl && (
+        <div className="relative pb-[56.25%] mb-4 mt-4">
+          <Image unoptimized={true} height={100} width={100} src={imageUrl} 
+            alt="Uploaded preview"
+            className="absolute inset-0 w-full h-full object-cover bg-gray-200 rounded"
+          />
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 
       <div className=" max-h-full flex flex-col items-center ">
         <div className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
@@ -323,29 +358,23 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           {/* Image URL display and upload button */}
           <div className="mt-4">
             {imageUrl && (
-              <div className="relative pb-[56.25%] mb-4">
-                <Image
-                  src={imageUrl}
-                  height={100}
-                  width={100}
-                  loading='lazy'
-                  unoptimized={true}
-                alt="Blog Image" className="absolute inset-0 w-full h-full object-cover rounded bg-gray-200" />
+              <div className="relative pb-[56.25%] mb-2">
+                <Image unoptimized={true} height={100} width={100} src={imageUrl} alt="Blog Image" className="absolute inset-0 w-full h-full p-2 rounded object-cover bg-gray-200" />
               </div>
             )}
-            <button
+            <div
               onClick={() => setShowUploadDrawer(true)}
-              className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white"
+              className="p-2 cursor-pointer  w-full rounded-lg bg-white text-black text-center"
             >
               {imageUrl ? 'Change Image' : 'Upload Image'}
-            </button>
+            </div>
           </div>
 
           <div className='flex gap-3 items-center'>
             <button onClick={handlePublishClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400">
               Publish
             </button>
-            <button onClick={handleDraftClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-gray-500 disabled:bg-gray-400">
+            <button onClick={handleDraftClick} className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-gray-500 disabled:bg-gray-400">
               Draft
             </button>
             <button onClick={handleDeleteClick} className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400">

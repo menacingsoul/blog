@@ -43,7 +43,7 @@ model Blog {
   title       String
   description String
   content     String
-  imageUrl    String?  @default("https://img.freepik.com/free-photo/toy-bricks-table-with-word-blog_144627-47465.jpg?w=1480&t=st=1720193706~exp=1720194306~hmac=b12115389687537a559f6ad8fddb0682814b965085bbacafff75ac86dc6e6398")
+  imageUrl    String?  @default("https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   published   Boolean  @default(false)
