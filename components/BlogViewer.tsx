@@ -144,11 +144,12 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
         height={100}
         width={100}
         alt='blog_image'
-        className='w-full bg-white p-3 rounded'
+        className='w-full bg-white p-3 rounded mb-3'
         />
-        <div className="prose mt-3 lg:prose-lg text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
-          {parse(content)}
-        </div>
+       <div className="prose text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
+  {parse(content)}
+</div>
+
         <div className="flex flex-col sm:flex-row mt-2 space-x-4 items-center">
           <div className='flex items-center mt-4 space-x-2'>
             <button onClick={() => onVote('upvote')} className="flex px-4 gap-x-2 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">

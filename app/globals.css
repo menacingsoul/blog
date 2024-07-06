@@ -24,3 +24,5 @@
 .blog-card:hover {
   @apply transform scale-105 shadow-xl;
 }
+
+
