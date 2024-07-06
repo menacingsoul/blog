@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { LocateIcon } from "lucide-react";
 import { LocateFixed } from "lucide-react";
-import FollowerList from "./FollowerList";
-import FollowingList from "./FollowingList";
+import FollowerList from "../lists/FollowerList";
+import FollowingList from "../lists/FollowingList";
 import { SignOutButton } from "@clerk/nextjs";
 
 interface User {

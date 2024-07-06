@@ -1,5 +1,5 @@
 import React from "react";
-import ProfileCard from "@/components/ProfileCard";
+import ProfileCard from "@/components/cards/ProfileCard";
 import { getUserByClerkID } from "@/utils/auth";
 
 

@@ -1,6 +1,6 @@
 // app/blog/editor/[id]/page.tsx
 
-import BlogEditor from '@/components/BlogEditor';
+import BlogEditor from '@/components/blog/BlogEditor';
 import { prisma } from '@/utils/db';
 
 const BlogEditorPage = async ({ params }: { params: { id: string } }) => {

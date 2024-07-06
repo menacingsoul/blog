@@ -6,8 +6,6 @@ import { toast } from "react-toastify";
 import { useRouter } from 'next/navigation';
 
 
-
-
 interface FormData {
   firstName: string;
   lastName: string;
@@ -83,7 +81,7 @@ const ProfileForm: React.FC = () => {
   };
 
   return (
-    <form className="relative mt-8 space-y-6" onSubmit={handleSubmit}>
+    <form className="relative mt-8 space-y-3" onSubmit={handleSubmit}>
       <div className="relative mt-8 space-y-6">
         <input
           type="text"

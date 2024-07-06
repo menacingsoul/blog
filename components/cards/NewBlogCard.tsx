@@ -2,7 +2,7 @@
 import React from "react";
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
-import { createBlog } from "../utils/api";
+import { createBlog } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";

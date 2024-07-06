@@ -1,8 +1,8 @@
 // app/blog/page.tsx
 import { prisma } from '@/utils/db';
-import BlogCard from '@/components/BlogCard';
-import FeaturedBlogCard from '@/components/FeaturedBlogCard';
-import NewBlogCard from'@/components/NewBlogCard';
+import BlogCard from '@/components/cards/BlogCard';
+import FeaturedBlogCard from '@/components/cards/FeaturedBlogCard';
+import NewBlogCard from'@/components/cards/NewBlogCard'
 import Link from 'next/link';
 const BlogPage = async () => {
   

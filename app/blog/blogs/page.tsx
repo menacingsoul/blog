@@ -1,6 +1,6 @@
 import { prisma } from '@/utils/db';
-import BlogCard from '@/components/BlogCard';
-import BlogsSearch from '@/components/BlogSearch';
+import BlogCard from '@/components/blog/BlogCard';
+import BlogsSearch from '@/components/blog/BlogSearch';
 
 const Blogs = async ({ searchParams }) => {
   const searchQuery = searchParams.search || '';
