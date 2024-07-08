@@ -2,10 +2,13 @@
 
 import BlogEditor from '@/components/myBlogs/BlogEditor';
 import { prisma } from '@/utils/db';
+import { getUserByClerkID } from '@/utils/auth';
 
 
 const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
+  const user = await getUserByClerkID();
+  const currentUserId = user.id;
 
   // Fetch the blog data on the server side
   const blog = await prisma.blog.findUnique({
@@ -13,6 +16,7 @@ const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
     include: {
       author: {
         select: {
+          id:true,
           firstName: true,
           lastName: true,
           profilePhoto: true,
@@ -23,6 +27,14 @@ const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
 
   if (!blog) {
     return <div>Blog not found</div>;
+  }
+  if(blog.author.id!=currentUserId)
+  {
+    return <div>unauthorised access</div>
+  }
+  if(blog.published==true)
+  {
+    return <div>Page not found</div>
   }
 
   return (

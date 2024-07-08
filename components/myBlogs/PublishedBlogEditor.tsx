@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import "react-quill/dist/quill.snow.css";
 import { Loader2, X, UploadCloud, Eye, EyeOff } from "lucide-react";
-import { useAutosave } from "react-autosave";
 import { deleteBlog } from "@/utils/api";
 import Image from "next/image";
 import BlogPreviewer from "./BlogPreviewer";
@@ -27,7 +26,7 @@ interface BlogData {
   imageUrl?: string;
 }
 
-const BlogEditor: React.FC<BlogEditorProps> = ({
+const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
   blogId,
   initialDescription,
   initialContent,
@@ -42,8 +41,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const [isAutosaving, setIsAutosaving] = useState(false);
-  const [isSavingDraft, setSavingDraft] = useState(false);
   const [isUploading, setUploading] = useState(false);
   const [showUploadDrawer, setShowUploadDrawer] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -116,57 +113,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setPublishing(false);
     }
   };
-
-  const handleDraftClick = async () => {
-    setSavingDraft(true);
-    try {
-      await fetch(`/api/blog/${blogId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          content,
-          published: false,
-          imageUrl,
-        }),
-      });
-    } catch (error) {
-      console.error("Error saving draft:", error);
-    } finally {
-      router.push("/myblogs");
-      setSavingDraft(false);
-    }
-  };
-
-  // Autosave functionality
-  useAutosave({
-    data: { title, description, content, imageUrl },
-    onSave: async ({ title, description, content, imageUrl }) => {
-      setIsAutosaving(true);
-      try {
-        await fetch(`/api/blog/${blogId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title,
-            description,
-            content,
-            published: false,
-            imageUrl,
-          }),
-        });
-      } catch (error) {
-        console.error("Error autosaving blog:", error);
-      } finally {
-        setIsAutosaving(false);
-      }
-    },
-  });
+  
 
   // Handle image upload
   const handleUploadImage = async (
@@ -229,18 +176,11 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           </div>
         </div>
       )}
-      {isSavingDraft && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-8 shadow-md">
-            <Loader2 className="mr-2 h-20 w-20 animate-spin" />
-          </div>
-        </div>
-      )}
       {showConfirm && (
         <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
           <div className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-300">Confirm Publish</h2>
-            <p className="text-gray-200">Do you want to publish this blog?</p>
+            <p className="text-gray-200">Do you want to publish this updated blog?</p>
             <div className="flex justify-end mt-6">
               <button
                 className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
@@ -433,13 +373,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                 onClick={handlePublishClick}
                 className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400"
               >
-                Publish
-              </button>
-              <button
-                onClick={handleDraftClick}
-                className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-gray-500 disabled:bg-gray-400"
-              >
-                Draft
+                Save
               </button>
               <button
                 onClick={handleDeleteClick}
@@ -449,16 +383,10 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
               </button>
             </div>
           )}
-          {!preview && isAutosaving && (
-            <div className="flex items-center mb-2 mt-2">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-300 mr-2" />
-              <span className="text-gray-300">Autosaving...</span>
-            </div>
-          )}
         </div>
       </div>
     </>
   );
 };
 
-export default BlogEditor;
+export default PublishedBlogEditor;
