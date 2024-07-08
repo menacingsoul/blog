@@ -107,6 +107,16 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const { id } = params;
 
     // Delete comments associated with the blog
+    await prisma.view.deleteMany({
+      where:{
+        blogId:id,
+      }
+    })
+    await prisma.vote.deleteMany({
+      where:{
+        blogId:id,
+      }
+    })
     await prisma.comment.deleteMany({
       where: {
         blogId: id,

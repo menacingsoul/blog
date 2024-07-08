@@ -240,7 +240,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
           <div className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-300">Confirm Publish</h2>
-            <p className="text-gray-200">Once published you cannot edit/delete the blog?</p>
+            <p className="text-gray-200">Do you want to publish this blog?</p>
             <div className="flex justify-end mt-6">
               <button
                 className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
