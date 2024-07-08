@@ -1,5 +1,5 @@
 import { prisma } from '@/utils/db';
-import BlogCard from '@/components/blog/BlogCard';
+import BlogCard from '@/components/cards/BlogCard';
 import BlogsSearch from '@/components/blog/BlogSearch';
 
 const Blogs = async ({ searchParams }) => {
