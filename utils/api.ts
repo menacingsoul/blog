@@ -99,3 +99,72 @@ export const deleteBlog = async (id: String) => {
   }
 
 }
+
+export const followUser = async (authorId: string) => {
+  try {
+    const response = await fetch('/api/follow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ authorId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to follow user');
+    }
+
+    const data = await response.json();
+    return data.message; // Return the success message
+
+  } catch (error) {
+    console.error('Error following user:', error);
+    throw new Error('Error following user');
+  }
+};
+
+export const unFollowUser = async (authorId: string) => {
+  try {
+    const response = await fetch('/api/unfollow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ authorId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to unfollow user');
+    }
+
+    const data = await response.json();
+    return data.message; // Return the success message
+
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    throw new Error('Error unfollowing user');
+  }
+};
+
+export const removeFollower = async (followerId: string) => {
+  try {
+    const response = await fetch('/api/removefollower', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ followerId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to unfollow user');
+    }
+
+    const data = await response.json();
+    return data.message; // Return the success message
+
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    throw new Error('Error unfollowing user');
+  }
+};

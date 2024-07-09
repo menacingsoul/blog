@@ -1,9 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
+import { removeFollower } from "@/utils/api";
+import { Loader2 } from "lucide-react";
 
 const FollowerList = ({ followers }) => {
+  const [followerList, setFollowerList] = useState(followers);
+  const [loading,setLoading] = useState(false);
+  const handleRemove = async (followerId) => {
+    setLoading(true)
+    try {
+      await removeFollower(followerId);
+      setFollowerList(followerList.filter(follower => follower.id !== followerId));
+    } catch (error) {
+      console.error('Error removing follower:', error);
+    }finally
+    {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className="overflow-auto mx-auto rounded-xl w-full h-fit bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6"
@@ -15,7 +31,7 @@ const FollowerList = ({ followers }) => {
 
       {/* Follower List */}
       <div className="max-h-72 overflow-y-auto scrollbar-thumb-rounded">
-        {followers.map((follower) => (
+        {followerList.map((follower) => (
           <li key={follower.id} className="list-none border-b border-blue-100 p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -32,9 +48,12 @@ const FollowerList = ({ followers }) => {
                 </div>
               </div>
 
-              <div className="bg-fuchsia-200 w-fit h-fit py-1 px-2 rounded-lg text-sm text-black">
-                <Link href={""}>remove</Link>
-              </div>
+              <button
+                onClick={() => handleRemove(follower.id)}
+                className="bg-fuchsia-200 w-fit h-fit py-1 px-2 rounded-lg text-sm text-black"
+              >
+               {loading?<Loader2 size={12} className=" animate-spin"/>:<div>Remove</div>}
+              </button>
             </div>
           </li>
         ))}
@@ -42,6 +61,5 @@ const FollowerList = ({ followers }) => {
     </div>
   );
 };
-
 
 export default FollowerList;

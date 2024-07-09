@@ -2,9 +2,13 @@
 
 import BlogViewer from '@/components/blog/BlogViewer';
 import { prisma } from '@/utils/db';
+import { getUserByClerkID } from '@/utils/auth';
 
 const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
+  const user = await getUserByClerkID();
+  const userId = user.id;
+  const following = user.following
 
   // Fetch the blog data on the server side
   const blog = await prisma.blog.findUnique({
@@ -13,9 +17,11 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
       author: {
         select: {
           firstName: true,
+          id:true,
           lastName: true,
           profilePhoto: true,
           username:true,
+          followers:true,
         },
     
       },
@@ -26,6 +32,7 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
                     firstName:true,
                     lastName:true,
                     profilePhoto:true,
+                    username:true,
                    
                 }
             },
@@ -42,6 +49,17 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   }
   const viewCount = blog.views.length;
 
+  let showFollow = true;
+
+  if(blog.author.id==userId)
+  {
+    showFollow = false;
+  }
+
+  const unfollow = blog.author.followers.some(follower => follower.id === userId);
+  
+  console.log(unfollow);
+
   return (
     <div className="h-screen overflow-y-scroll bg-gradient-to-br from-gray-900 to-black p-8">
     <div className="absolute top-26 left-[32%] w-[55%] h-60 md:w-64 md:h-64 lg:w-[40%] lg:h-72 bg-purple-500 rounded-full filter blur-3xl opacity-50 animate-blob"></div>
@@ -57,6 +75,8 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
         initialComments={blog.comments}
         viewCount={viewCount}
         imageUrl={blog.imageUrl}
+        followButton={showFollow}
+        unfollow = {unfollow}
       />
     </div>
   );
