@@ -4,6 +4,7 @@ import BlogCard from '@/components/cards/BlogCard';
 import FeaturedBlogCard from '@/components/cards/FeaturedBlogCard';
 import NewBlogCard from'@/components/cards/NewBlogCard'
 import Link from 'next/link';
+import { ArrowRightCircle } from 'lucide-react';
 const BlogPage = async () => {
   
   // Fetch blogs using Prisma
@@ -69,8 +70,9 @@ const BlogPage = async () => {
         Recent Blogs
       </div>
       <div className='text-white p-4 z-50'>
-        <Link href="/blog/blogs">
+      <Link href="/blog/blogs" className='flex items-center gap-x-2'>
         View all
+        <ArrowRightCircle/>
         </Link>
       </div>
       </div>

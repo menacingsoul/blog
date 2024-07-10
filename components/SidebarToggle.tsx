@@ -6,6 +6,7 @@ import {Poppins} from 'next/font/google'
 import { Dancing_Script } from 'next/font/google';
 import { Raleway } from 'next/font/google';
 import Image from 'next/image';
+import {LucideHome,User2Icon, NotebookPenIcon,Copyright } from 'lucide-react';
 
 
 const dScript = Raleway({
@@ -18,9 +19,10 @@ const poppins = Poppins({
   subsets: ['latin'],
 })
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/profile', label: 'Profile' },
-  { href: '/myblogs', label: 'My Blogs' },
+  { href: '/', label: 'Home',icon:<LucideHome/> },
+  { href: '/myblogs', label: 'My Blogs',icon:<NotebookPenIcon/> },
+  { href: '/profile', label: 'Profile',icon:<User2Icon/> },
+  
 ];
 
 const SidebarToggle = () => {
@@ -61,17 +63,14 @@ const SidebarToggle = () => {
         <ul className="flex-1 overflow-y-auto">
           {links.map((link) => (
             <li key={link.href} className="p-4 text-white text-lg font-thin transition-all duration-400 hover:text-xl hover:text-black hover:bg-[#9EC8B9]">
-              <Link href={link.href}>{link.label}</Link>
+              <Link href={link.href} className='flex gap-x-2'>{link.icon}{link.label}</Link>
             </li>
           ))}
         </ul>
         <div className="p-4 absolute bottom-0  text-white space-y-1 ">
-         <div className='text-base'>
-         Developed by <span className=' font-semibold '>Adarsh</span>
-        </div> 
-
-          <p className=' text-sm'>
-            <span className=' font-bold'>© </span>Copyright <span className=' font-semibold'>2024</span>
+        
+          <p className=' text-sm flex items-center gap-x-2'>
+            <span className=' font-semibold flex items-center gap-x-1'><Copyright/> Copyright </span> <span className=' font-semibold'>2024</span>
           </p>
         </div>
       </aside>

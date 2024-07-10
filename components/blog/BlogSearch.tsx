@@ -18,12 +18,12 @@ const BlogsSearch = () => {
   };
 
   return (
-    <div className='flex items-center space-x-2 mb-2'>
-      <div className="relative">
+    <div className='flex items-center w-full space-x-1 mb-2'>
+      <div className="relative w-full">
         <input
           type={`${searchBy === 'name' ? 'text' : 'date'}`}
           placeholder={`Search blogs... ${searchBy === 'name' ? '' : 'date'}`}
-          className="w-full p-2 pl-10 text-lg bg-gray-600/50 bg-opacity-80 rounded placeholder-gray-300 text-white"
+          className="w-full h-12 p-2 pl-10 text-lg bg-gray-600/50 bg-opacity-80 rounded-2xl placeholder-gray-300 text-white"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyPress={handleSearch}
@@ -35,7 +35,7 @@ const BlogsSearch = () => {
       <div className="relative">
        
       </div>
-      <button onClick={handleSearch} className="p-2 bg-indigo-600 z-50 text-white rounded">
+      <button onClick={handleSearch} className="p-2 h-12 bg-indigo-600 z-50 text-white rounded-2xl">
         Search
       </button>
     </div>
