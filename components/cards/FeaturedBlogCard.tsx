@@ -4,6 +4,8 @@
 import Link from 'next/link';
 import Image from 'next/image'; 
 import { useRouter } from 'next/navigation';
+import { useState,useEffect } from 'react';
+import FeaturedBlogCardSkeleton from '../FeaturedBlogCardSkeleton';
 
 interface View {
   id: string;
@@ -28,6 +30,13 @@ interface Blog {
 
 const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <FeaturedBlogCardSkeleton />;
   const handleClick = async () => {
     try {
       await fetch(`/api/views/${blog.id}`, {

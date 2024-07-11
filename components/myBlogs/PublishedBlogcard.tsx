@@ -3,6 +3,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import BlogCardSkeleton from '../BlogCardSkeleton';
 interface Blog {
   id: string;
   title: string;
@@ -17,6 +19,13 @@ interface Blog {
 
 
 const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <BlogCardSkeleton />;
   return (
     <Link href={`/myblogs/viewer/${blog.id}`} className=" max-w-full h-56 rounded-xl overflow-hidden shadow-lg 
   bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg

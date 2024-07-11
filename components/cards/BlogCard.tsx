@@ -2,6 +2,8 @@
 'use client'
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useState,useEffect } from 'react';
+import BlogCardSkeleton from '../BlogCardSkeleton';
 
 interface View {
   id: string;
@@ -23,6 +25,13 @@ interface Blog {
 
 const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <BlogCardSkeleton />;
 
   const handleClick = async () => {
     try {
