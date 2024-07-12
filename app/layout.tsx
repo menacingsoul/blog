@@ -24,7 +24,8 @@ export default function RootLayout({
   return (
     <ClerkProvider>
     <html lang="en">
-      <meta name="google-adsense-account" content="ca-pub-5673721717655381"/>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5673721717655381"
+     crossorigin="anonymous"></script>
       <body className={inter.className}>{children}</body>
     </html>
   </ClerkProvider>
