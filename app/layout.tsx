@@ -25,7 +25,7 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5673721717655381"
-     crossorigin="anonymous"></script>
+     crossOrigin="anonymous"></script>
       <body className={inter.className}>{children}</body>
     </html>
   </ClerkProvider>
