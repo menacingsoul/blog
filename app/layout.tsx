@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import React from 'react'
 import {Poppins } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 
@@ -12,6 +13,7 @@ const inter = Poppins({
 export const metadata: Metadata = {
   title: 'Blog Verse',
   description: 'A web blogging app for everyone',
+  
 }
 
 export default function RootLayout({
@@ -22,6 +24,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
     <html lang="en">
+      <meta name="google-adsense-account" content="ca-pub-5673721717655381"/>
       <body className={inter.className}>{children}</body>
     </html>
   </ClerkProvider>
