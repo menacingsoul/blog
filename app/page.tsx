@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Dancing_Script } from 'next/font/google';
 import { Raleway } from "next/font/google";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from 'next/navigation';

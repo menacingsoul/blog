@@ -9,14 +9,13 @@ interface Blog {
   id: string;
   title: string;
   description: string;
+  createdAt: Date;
   author: {
     profilePhoto: string;
     firstName: string;
     lastName: string;
   };
-  
 }
-
 
 const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,6 +23,12 @@ const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
     const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
     return () => clearTimeout(timer);
   }, []);
+  const creationDate = new Date(blog.createdAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
 
   if (isLoading) return <BlogCardSkeleton />;
   return (
@@ -35,7 +40,7 @@ const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
       </div>
       <div className="p-6">
         <h2 className="text-xl md:text-2xl font-semibold mb-2 text-white">{blog.title}</h2>
-        <div className='flex mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-2xl w-fit items-center gap-1'>
+        <div className='flex mb-1 bg-yellow-50 font-semibold px-1 py-1 rounded-2xl w-fit items-center gap-1'>
         <Image
         alt="author image"
         src={blog.author.profilePhoto}
@@ -45,6 +50,7 @@ const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         />
         <p className="text-gray-900 text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
         </div>
+        <p className=" text-red-100 text-xs mb-2">{creationDate}</p>
         <p className="text-gray-300 line-clamp-2 ">{blog.description}</p>
       </div>
     </Link>

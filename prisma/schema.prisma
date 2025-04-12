@@ -33,6 +33,7 @@ model User {
   comments    Comment[]
   votes       Vote[]
   views       View[]
+  readingHistory ReadingHistory[]
 
   following User[] @relation("Follows")
   followers User[] @relation("Follows")
@@ -51,10 +52,12 @@ model Blog {
   downVotes   Int      @default(0)
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
-
+  tags        Tag[]    
+  categories  Category[]
   comments    Comment[]
   votes       Vote[]
   views       View[]
+  readingHistory ReadingHistory[]
 }
 
 model Comment {
@@ -83,7 +86,7 @@ model Vote {
   comment   Comment? @relation(fields: [commentId], references: [id])
   commentId String?
 
-  @@unique([userId, blogId]) // Ensure unique votes per user per blog
+  @@unique([userId, blogId]) 
 }
 
 model View {
@@ -94,5 +97,28 @@ model View {
   blog      Blog     @relation(fields: [blogId], references: [id])
   blogId    String
 
-  @@unique([userId, blogId]) // Ensure unique views per user per blog
+  @@unique([userId, blogId]) 
+}
+
+model Tag {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  blogs Blog[]
+}
+
+model Category {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  blogs Blog[]
+}
+
+model ReadingHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  blogId    String
+
+  @@unique([userId, blogId]) // Ensure unique reading history entries per user per blog
 }

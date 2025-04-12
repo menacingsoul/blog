@@ -2,11 +2,10 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LocateIcon } from "lucide-react";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, Users, LogOut, BookOpen, Edit } from "lucide-react";
+import { SignOutButton } from "@clerk/nextjs";
 import FollowerList from "../lists/FollowerList";
 import FollowingList from "../lists/FollowingList";
-import { SignOutButton } from "@clerk/nextjs";
 
 interface User {
   profilePhoto: string;
@@ -15,119 +14,114 @@ interface User {
   username: string;
   city: string;
   country: string;
-  followers: { /* Add properties for follower details */ }[]; // Adjust based on your data structure
-  following: { /* Add properties for following details */ }[]; // Adjust based on your data structure
-  posts: { /* Add properties for post details */ }[];        // Adjust based on your data structure
+  followers: any[]; 
+  following: any[]; 
+  posts: any[];
   bio: string;
 }
 
 const ProfileCard: React.FC<{ user: User }> = ({ user }) => {
-  const [followerList, setFollowerList] = useState(false);
-  const [followingList, setFollowingList] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  
+  const closeModals = () => setActiveTab(null);
 
   return (
-    <>
-    {followerList && (
-      <div className="w-full lg:w-3/4 h-full px-4 mx-auto">
-         <FollowerList followers={user.followers}/>
-         {/* Close Button */}
-         <div className="flex justify-end mt-4">
-              <button 
-                className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
-                onClick={()=>setFollowerList(false)}>
-                Close
-              </button>
-            </div>
-      </div>
-        )}
-        {followingList && (
-      <div className="w-full lg:w-3/4 h-full px-4 mx-auto">
-         <FollowingList followings={user.following}/>
-         {/* Close Button */}
-         <div className="flex justify-end mt-4">
-              <button 
-                className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
-                onClick={()=>setFollowingList(false)}>
-                Close
-              </button>
-            </div>
-      </div>
-        )}
-    {!followerList &&!followingList && (<div className="w-full lg:w-3/4 h-full px-4 mx-auto">
-      <div className="relative flex-col overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg hover:shadow-2xl transition-all duration-300 hover:bg-gradient-to-b flex items-center justify-center">
-        
-        
-        <div className="px-6">
+    <div className="w-full max-w-4xl mx-auto relative">
+      {/* Modal overlays */}
+      {activeTab && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center" onClick={closeModals}>
+          <div className="w-full max-w-2xl p-2">
+            {activeTab === "followers" && <FollowerList followers={user.followers} />}
+            {activeTab === "following" && <FollowingList followings={user.following} />}
+          </div>
+        </div>
+      )}
 
-          <div className="text-center mt-8">
-          
-                <Image
-                  alt="..."
-                  src={user.profilePhoto}
-                  height={100}
-                  width={100}
-                  className="shadow-lg rounded-full align-middle mx-auto  mb-2 border-none max-w-150-px"
-                />
-            <h3 className="text-xl font-semibold leading-normal mb-1 text-blueGray-700">
-              {user.firstName} {user.lastName}
-            </h3>
-            <div className="text-sm  mt-1 mb-2 text-blueGray-400 font-normal">
-              <p className="text-xs text-blueGray-400 font-semibold"> @{user.username}</p>
-              <div className=" flex gap-2 justify-center">
-                  <LocateFixed/>
-                 <div className="mt-1">{user.city}, {user.country}</div>
+      {/* Main profile card */}
+      <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-800/90 backdrop-filter backdrop-blur-lg rounded-2xl border border-zinc-700/50 shadow-xl overflow-hidden transition-all duration-300 hover:shadow-indigo-500/10">
+        {/* Cover/Header area */}
+        <div className="h-32 bg-gradient-to-r from-indigo-600/30 to-fuchsia-600/30 relative">
+          <div className="absolute -bottom-16 left-0 w-full flex items-end justify-between px-8">
+            <div className="flex items-end">
+              <Image
+                src={user.profilePhoto}
+                alt={`${user.firstName}'s profile`}
+                height={100}
+                width={100}
+                className="rounded-full border-4 border-zinc-800 shadow-lg object-cover h-32 w-32"
+              />
+              <div className="ml-4 mb-2 text-white">
+                <h2 className="text-2xl font-bold">{user.firstName} {user.lastName}</h2>
+                <p className="text-zinc-300 text-sm">@{user.username}</p>
               </div>
-              <div className="items-center w-full p-3 justify-center ">
-              <button className=" bg-zinc-800 hover:bg-zinc-900 items-center py-2 px-5 justify-center rounded-lg text-lg text-white shadow-lg">
-                <SignOutButton  redirectUrl="/"/>
-              </button>
-              </div>
-              
-             
             </div>
+            <button className="bg-zinc-800 hover:bg-zinc-700 transition-colors mb-2 rounded-lg px-4 py-2 text-white flex items-center gap-2 shadow-lg">
+              <Edit size={16} />
+              <span>Edit Profile</span>
+            </button>
           </div>
-          <div className="w-full px-4 text-center">
-            <div className="flex justify-center py-4 lg:pt-4 pt-8">
-              <div className="mr-4 p-3 text-center">
-                <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
-                  {user.followers.length}
-                </span>
-                <span className="text-sm text-blueGray-400 cursor-pointer"
-                onClick={()=>setFollowerList(true)}
-                >Followers
-                </span>
-              </div>
-              <div className="mr-4 p-3 text-center">
-                <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
-                {user.following.length}
-                </span>
-                <span className="text-sm text-blueGray-400 cursor-pointer"
-                onClick={()=>setFollowingList(true)}
-                >Following</span>
-              </div>
-              <div className="lg:mr-4 p-3 text-center">
-                <Link href={"/myblogs"}>
-                <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
-                {user.posts.length}
-                </span>
-                <span className="text-sm text-blueGray-400">Blogs</span>
-                </Link>
-              </div>
-            </div>
+        </div>
+
+        {/* Profile content */}
+        <div className="pt-20 px-8 pb-6">
+          {/* Location */}
+          <div className="flex items-center text-zinc-400 text-sm mb-4">
+            <LocateFixed size={16} className="mr-1" />
+            <span>{user.city}, {user.country}</span>
           </div>
-          <div className="py-2 border-t border-blueGray-200 text-center">
-            <div className="flex flex-wrap justify-center">
-              <div className="w-full lg:w-9/12 px-4">
-                <p className="mb-4 text-lg leading-relaxed text-blueGray-700">
-                  {user.bio}
-                </p>
+
+          {/* Bio */}
+          <div className="bg-zinc-800/40 border border-zinc-700/50 rounded-lg p-4 mb-6">
+            <p className="text-zinc-300 leading-relaxed">{user.bio}</p>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div 
+              className="flex flex-col items-center p-4 bg-zinc-800/40 rounded-lg border border-zinc-700/50 cursor-pointer hover:bg-zinc-700/40 transition-colors"
+              onClick={() => setActiveTab("followers")}
+            >
+              <span className="text-2xl font-bold text-white">{user.followers.length}</span>
+              <div className="flex items-center text-zinc-400 mt-1">
+                <Users size={14} className="mr-1" />
+                <span>Followers</span>
               </div>
             </div>
+            
+            <div 
+              className="flex flex-col items-center p-4 bg-zinc-800/40 rounded-lg border border-zinc-700/50 cursor-pointer hover:bg-zinc-700/40 transition-colors"
+              onClick={() => setActiveTab("following")}
+            >
+              <span className="text-2xl font-bold text-white">{user.following.length}</span>
+              <div className="flex items-center text-zinc-400 mt-1">
+                <Users size={14} className="mr-1" />
+                <span>Following</span>
+              </div>
+            </div>
+            
+            <Link href="/myblogs" className="flex flex-col items-center p-4 bg-zinc-800/40 rounded-lg border border-zinc-700/50 cursor-pointer hover:bg-zinc-700/40 transition-colors">
+              <span className="text-2xl font-bold text-white">{user.posts.length}</span>
+              <div className="flex items-center text-zinc-400 mt-1">
+                <BookOpen size={14} className="mr-1" />
+                <span>Blogs</span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Sign out */}
+          <div className="flex justify-center">
+            <button className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white rounded-lg px-6 py-2 shadow-lg flex items-center gap-2 transition-all duration-300">
+              <SignOutButton redirectUrl="/">
+                <div className="flex items-center gap-2">
+                  <LogOut size={16} />
+                  <span>Sign Out</span>
+                </div>
+              </SignOutButton>
+            </button>
           </div>
         </div>
       </div>
-    </div>)}
-    </>
+    </div>
   );
 };
 

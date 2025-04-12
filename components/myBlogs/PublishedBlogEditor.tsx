@@ -4,7 +4,16 @@ import React, { useState, FormEvent } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import "react-quill/dist/quill.snow.css";
-import { Loader2, X, UploadCloud, Eye, EyeOff } from "lucide-react";
+import {
+  Loader2,
+  X,
+  UploadCloud,
+  Eye,
+  EyeOff,
+  Trash2,
+  Save,
+  Image as ImageIcon,
+} from "lucide-react";
 import { deleteBlog } from "@/utils/api";
 import Image from "next/image";
 import BlogPreviewer from "./BlogPreviewer";
@@ -16,14 +25,6 @@ interface BlogEditorProps {
   initialContent: string;
   initialTitle: string;
   initialImageUrl: string;
-}
-
-interface BlogData {
-  title: string;
-  description: string;
-  content: string;
-  published: boolean;
-  imageUrl?: string;
 }
 
 const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
@@ -95,7 +96,7 @@ const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
           title,
           description,
           content,
-          bool: true,
+          published: true,
           imageUrl,
         }),
       });
@@ -113,7 +114,6 @@ const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
       setPublishing(false);
     }
   };
-  
 
   // Handle image upload
   const handleUploadImage = async (
@@ -168,224 +168,357 @@ const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
   };
 
   return (
-    <>
-      {isPublishing && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-8 shadow-md">
-            <Loader2 className="mr-2 h-20 w-20 animate-spin" />
-          </div>
-        </div>
-      )}
-      {showConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-300">Confirm Publish</h2>
-            <p className="text-gray-200">Do you want to publish this updated blog?</p>
-            <div className="flex justify-end mt-6">
-              <button
-                className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
-                onClick={() => setShowConfirm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={handleConfirmPublish}
-              >
-                Publish
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {isDeleting && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-8 shadow-md">
-            <Loader2 className="mr-2 h-20 w-20 animate-spin" />
-          </div>
-        </div>
-      )}
-      {showConfirmDelete && (
-        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-300">Confirm Delete</h2>
-            <p className="text-gray-200">Once deleted you cannot retrieve this blog?</p>
-            <div className="flex justify-end mt-6">
-              <button
-                className="px-4 py-2 mr-2 rounded bg-zinc-900/70 hover:bg-gray-300/70 text-slate-50 hover:text-gray-800"
-                onClick={() => setShowConfirmDelete(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
-                onClick={handleConfirmDelete}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black py-6 px-4 sm:px-6 relative">
+      {/* Background blobs */}
+      <div className="absolute top-40 left-1/4 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl opacity-10 animate-pulse"></div>
+      <div className="absolute bottom-40 right-1/4 w-80 h-96 bg-blue-600 rounded-full filter blur-3xl opacity-10 animate-pulse"></div>
 
-      {/* Image Upload Drawer */}
-      {showUploadDrawer && (
-        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Upload Image</h2>
+      {/* Main Layout */}
+      <div className="max-w-7xl mx-auto">
+        {/* Loading Overlays */}
+        {isPublishing && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
+            <div className="bg-gray-900 rounded-lg p-8 shadow-xl border border-gray-800">
+              <Loader2 className="h-12 w-12 animate-spin text-purple-500 mx-auto mb-4" />
+              <p className="text-white text-center">Saving your blog...</p>
+            </div>
+          </div>
+        )}
+
+        {isDeleting && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
+            <div className="bg-gray-900 rounded-lg p-8 shadow-xl border border-gray-800">
+              <Loader2 className="h-12 w-12 animate-spin text-red-500 mx-auto mb-4" />
+              <p className="text-white text-center">Deleting your blog...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Dialogs */}
+        {showConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-md p-6 bg-gray-900/90 rounded-xl border border-gray-700 shadow-2xl">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-xl font-bold text-white">Confirm Save</h3>
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="p-1 rounded-full hover:bg-gray-700/70 transition-colors text-gray-400 hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to save changes to this blog?
+              </p>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                  onClick={() => setShowConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors flex items-center gap-2"
+                  onClick={handleConfirmPublish}
+                >
+                  <Save size={16} />
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showConfirmDelete && (
+          <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-md p-6 bg-gray-900/90 rounded-xl border border-gray-700 shadow-2xl">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-xl font-bold text-white">Confirm Delete</h3>
+                <button
+                  onClick={() => setShowConfirmDelete(false)}
+                  className="p-1 rounded-full hover:bg-gray-700/70 transition-colors text-gray-400 hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this blog? This action cannot be
+                undone and all content will be permanently lost.
+              </p>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                  onClick={() => setShowConfirmDelete(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors flex items-center gap-2"
+                  onClick={handleConfirmDelete}
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Image Upload Dialog */}
+        {showUploadDrawer && (
+          <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-md p-6 bg-gray-900/90 rounded-xl border border-gray-700 shadow-2xl">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-xl font-bold text-white">
+                  Upload Cover Image
+                </h3>
+                <button
+                  onClick={() => setShowUploadDrawer(false)}
+                  className="p-1 rounded-full hover:bg-gray-700/70 transition-colors text-gray-400 hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
               <div
-                className="cursor-pointer"
-                onClick={() => setShowUploadDrawer(false)}
+                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-700 rounded-lg bg-gray-800/50 cursor-pointer hover:border-purple-500 transition-colors group"
+                onClick={() => document.getElementById("fileInput").click()}
               >
-                <X />
+                <UploadCloud className="w-12 h-12 text-gray-400 group-hover:text-purple-400 transition-colors mb-2" />
+                <p className="text-gray-400">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-gray-500 text-sm">
+                  PNG, JPG, WebP (Max 10MB)
+                </p>
               </div>
-            </div>
 
-            <div
-              className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer"
-              onClick={() => document.getElementById("fileInput").click()}
-            >
-              <UploadCloud className="w-12 h-12 text-gray-400" />
-            </div>
-            <input
-              id="fileInput"
-              type="file"
-              accept="image/*"
-              onChange={handleUploadImage}
-              className="hidden"
-            />
-            {isUploading && (
-              <div className="relative pt-1 mt-4">
-                <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-300">
-                  <div
-                    style={{ width: `${uploadProgress}%` }}
-                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-500"
-                  ></div>
-                </div>
-                <div className="flex justify-center mt-1 text-xs text-gray-600">
-                  <span>{Math.round(uploadProgress)}%</span>
-                </div>
-              </div>
-            )}
-            {imageUrl && (
-              <div className="relative pb-[56.25%] mb-4 mt-4">
-                <Image
-                  unoptimized={true}
-                  height={100}
-                  width={100}
-                  src={imageUrl}
-                  alt="Uploaded preview"
-                  className="absolute inset-0 w-full h-full object-cover bg-gray-200 rounded"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="max-h-full flex flex-col items-center">
-        <div
-          className="shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
-          border border-white/30 hover:border-white/50
-          hover:shadow-2xl transition-all duration-300 transform p-4 rounded-lg w-full"
-        >
-          <div className="flex items-center justify-between mb-2">
-          {!preview ?(
-            <div className="flex items-center">
-              <div className="p-2 text-white text-lg font-semibold">Title:</div>
               <input
-                type="text"
-                value={title}
-                onChange={handleTitleChange}
-                placeholder="Blog Title"
-                className="w-full focus:border-b-sky-600 p-2 text-lg bg-transparent rounded border-none placeholder-gray-300 focus:outline-none text-white"
+                id="fileInput"
+                type="file"
+                accept="image/*"
+                onChange={handleUploadImage}
+                className="hidden"
               />
-            </div>):(
-              <div className="p-2 text-white text-lg font-semibold">Preview</div>
-            )
-            
-            }
-            
-            <button
-              className="text-white p-3 rounded-full bg-gray-600  hover:bg-gray-400 focus:outline-none"
-              onClick={() => setPreview(!preview)}
-            >
-              {preview ? <EyeOff /> : <Eye />}
-            </button>
-          </div>
 
-          {!preview ? (
-            <>
-
-          <div className="flex items-center mb-4">
-            <div className="p-2 text-white text-lg font-semibold">Description:</div>
-            <input
-              type="text"
-              value={description}
-              onChange={handleDescriptionChange}
-              placeholder="What are you writing about?"
-              className="w-full p-2 text-lg bg-transparent rounded border-none placeholder-gray-300 focus:outline-none text-white"
-            />
-          </div>
-
-         
-            <ReactQuill
-              value={content}
-              onChange={handleContentChange}
-              className="text-zinc-200 bg-gradient-to-br from-white/5 to-white/10 backdrop-filter backdrop-blur-lg outline-none"
-            />
-            </>
-          ) : (
-            <>
-            <BlogPreviewer title={title} content={content} imageUrl={imageUrl} />
-            </>
-            
-          )}
-
-          {/* Image URL display and upload button */}
-          {!preview && (
-            <div className="mt-4">
-              {imageUrl && (
-                <div className="relative pb-[56.25%] mb-2">
-                  <Image
-                    unoptimized={true}
-                    height={100}
-                    width={100}
-                    src={imageUrl}
-                    alt="Blog Image"
-                    className="absolute inset-0 w-full h-full p-2 rounded object-cover bg-gray-200"
-                  />
+              {isUploading && (
+                <div className="relative pt-1 mt-4">
+                  <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-700">
+                    <div
+                      style={{ width: `${uploadProgress}%` }}
+                      className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-600 transition-all duration-500"
+                    ></div>
+                  </div>
+                  <div className="flex justify-between mt-1 text-xs text-gray-400">
+                    <span>Uploading...</span>
+                    <span>{Math.round(uploadProgress)}%</span>
+                  </div>
                 </div>
               )}
-              <div
-                onClick={() => setShowUploadDrawer(true)}
-                className="p-2 flex cursor-pointer gap-x-2 w-full rounded bg-white text-black items-center font-semibold justify-center"
-              >
-                Upload <UploadCloud />
+
+              {imageUrl && (
+                <div className="mt-4">
+                  <p className="text-gray-300 mb-2 font-medium">Preview:</p>
+                  <div className="relative pb-[56.25%]">
+                    <Image
+                      unoptimized={true}
+                      src={imageUrl}
+                      alt="Cover image preview"
+                      fill
+                      className="absolute inset-0 w-full h-full object-cover rounded-lg border border-gray-700"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Editor Container */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="w-full">
+            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl overflow-hidden shadow-xl">
+              {/* Cover Image Area */}
+              <div className="relative w-full h-64 bg-gray-800">
+                {imageUrl ? (
+                  <>
+                    <Image
+                      src={imageUrl}
+                      fill
+                      className="object-cover"
+                      alt="Blog cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70"></div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div
+                      className="flex flex-col items-center cursor-pointer"
+                      onClick={() => setShowUploadDrawer(true)}
+                    >
+                      <ImageIcon size={48} className="text-gray-600 mb-3" />
+                      <p className="text-gray-500">Add a cover image</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Floating button for image upload */}
+                {!preview && (
+                  <button
+                    onClick={() => setShowUploadDrawer(true)}
+                    className="absolute bottom-4 right-4 p-2 bg-gray-800/90 hover:bg-gray-700 rounded-lg backdrop-blur-sm text-white transition-colors flex items-center gap-2"
+                  >
+                    <UploadCloud size={16} />
+                    <span>{imageUrl ? "Change" : "Add"} Cover</span>
+                  </button>
+                )}
+
+                {/* Preview Toggle */}
+                <button
+                  className="absolute top-4 right-4 text-white p-3 rounded-full bg-gray-800/90 hover:bg-gray-700 backdrop-blur-sm transition-colors"
+                  onClick={() => setPreview(!preview)}
+                >
+                  {preview ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {/* Content Area */}
+              <div className="p-6 lg:p-8">
+                {/* Editor Header */}
+                <div className="mb-6 pb-6 border-b border-gray-800">
+                  {!preview ? (
+                    <>
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={handleTitleChange}
+                        placeholder="Blog Title"
+                        className="w-full text-2xl lg:text-3xl font-bold bg-transparent border-none focus:outline-none text-white placeholder-gray-500 mb-4"
+                      />
+                      <input
+                        type="text"
+                        value={description}
+                        onChange={handleDescriptionChange}
+                        placeholder="Add a brief description of your blog..."
+                        className="w-full text-gray-300 bg-transparent border-none focus:outline-none placeholder-gray-500"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+                        {title || "Untitled Blog"}
+                      </h1>
+                      <p className="text-gray-300">
+                        {description || "No description provided"}
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Editor/Preview Content */}
+                {!preview ? (
+                  <div className="min-h-[500px]">
+                    <ReactQuill
+                      value={content}
+                      onChange={handleContentChange}
+                      placeholder="Start writing your blog content here..."
+                      className="text-white bg-transparent editor-container"
+                      theme="snow"
+                    />
+                  </div>
+                ) : (
+                  <BlogPreviewer
+                    title={title}
+                    content={content}
+                    imageUrl={imageUrl}
+                  />
+                )}
+
+                {/* Actions Footer */}
+                {!preview && (
+                  <div className="mt-8 pt-6 border-t border-gray-800 flex flex-wrap gap-3 justify-between items-center">
+                    <button
+                      onClick={handlePublishClick}
+                      className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors flex items-center gap-2"
+                    >
+                      <Save size={16} />
+                      Save
+                    </button>
+
+                    <button
+                      onClick={handleDeleteClick}
+                      className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-red-700 text-white transition-colors flex items-center gap-2 hover:bg-opacity-90"
+                    >
+                      <Trash2 size={16} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-
-          {!preview && (
-            <div className="flex gap-3 items-center">
-              <button
-                onClick={handlePublishClick}
-                className="mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-indigo-500 disabled:bg-indigo-400"
-              >
-                Save
-              </button>
-              <button
-                onClick={handleDeleteClick}
-                className="flex gap-1 items-center mt-4 px-4 py-2 rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-red-500 disabled:bg-red-400"
-              >
-                Delete
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Custom styles for the editor */}
+      <style jsx global>{`
+        .editor-container .ql-editor {
+          min-height: 500px;
+          font-size: 1.125rem;
+          color: #e5e7eb;
+        }
+
+        .editor-container .ql-toolbar {
+          background-color: rgba(31, 41, 55, 0.5);
+          border-color: #374151;
+          border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .editor-container .ql-container {
+          border-color: #374151;
+          background-color: rgba(17, 24, 39, 0.3);
+          border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .editor-container .ql-snow.ql-toolbar button,
+        .editor-container .ql-snow .ql-toolbar button {
+          color: #9ca3af;
+        }
+
+        .editor-container .ql-snow.ql-toolbar button:hover,
+        .editor-container .ql-snow .ql-toolbar button:hover,
+        .editor-container .ql-snow.ql-toolbar button.ql-active,
+        .editor-container .ql-snow .ql-toolbar button.ql-active {
+          color: #a78bfa;
+        }
+
+        .editor-container .ql-snow .ql-stroke {
+          stroke: #9ca3af;
+        }
+
+        .editor-container .ql-snow .ql-fill {
+          fill: #9ca3af;
+        }
+
+        .editor-container .ql-snow.ql-toolbar button:hover .ql-stroke,
+        .editor-container .ql-snow .ql-toolbar button:hover .ql-stroke,
+        .editor-container .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+        .editor-container .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+          stroke: #a78bfa;
+        }
+
+        .editor-container .ql-snow.ql-toolbar button:hover .ql-fill,
+        .editor-container .ql-snow .ql-toolbar button:hover .ql-fill,
+        .editor-container .ql-snow.ql-toolbar button.ql-active .ql-fill,
+        .editor-container .ql-snow .ql-toolbar button.ql-active .ql-fill {
+          fill: #a78bfa;
+        }
+      `}</style>
+    </div>
   );
 };
 

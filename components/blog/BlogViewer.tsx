@@ -1,11 +1,15 @@
 // components/BlogViewer.tsx
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
 import { TwitterShareButton, WhatsappShareButton, TelegramShareButton, FacebookShareButton, TelegramIcon, XIcon, WhatsappIcon, FacebookIcon } from 'react-share';
 import { handleVote, addComment, followUser, unFollowUser } from '@/utils/api';
-import { EyeIcon, Share, X, ArrowBigDownIcon, ArrowBigUpIcon, Clipboard, Loader2, LoaderPinwheel } from 'lucide-react';
+import { 
+  EyeIcon, Share2, X, ThumbsUp, ThumbsDown, Copy, 
+  Loader2, BookmarkPlus, MessageSquare, Calendar, Users, 
+  Heart, AlertCircle
+} from 'lucide-react';
 
 interface Author {
   profilePhoto: string;
@@ -19,6 +23,7 @@ interface Comment {
   id: string;
   author: Author;
   content: string;
+  createdAt: Date;
 }
 
 interface BlogViewerProps {
@@ -28,6 +33,7 @@ interface BlogViewerProps {
   upVotes: number;
   downVotes: number;
   author: Author;
+  createdAt: Date;
   imageUrl: string;
   initialComments: Comment[];
   viewCount: number;
@@ -36,50 +42,79 @@ interface BlogViewerProps {
 }
 
 const BlogViewer: React.FC<BlogViewerProps> = ({
-  blogId, title, content, upVotes, downVotes, author, initialComments, viewCount, imageUrl, followButton, unfollow
+  blogId, title, content, upVotes, downVotes, author, initialComments, viewCount, imageUrl, followButton, unfollow,createdAt
 }) => {
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState('');
   const [voteCount, setVoteCount] = useState({ upvotes: upVotes, downvotes: downVotes });
-  const [shareDialogBox, setShareDialogBox] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isFollower, setIsFollower] = useState(unfollow);
   const [loading, setLoading] = useState(false);
-  const [isCommenting,setisCommenting] = useState(false)
+  const [isCommenting, setIsCommenting] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [commentError, setCommentError] = useState('');
+  const [hasVoted, setHasVoted] = useState({ up: false, down: false });
 
+  const shareUrl = `https://blogfiles.vercel.app/blog/viewer/${blogId}`;
+  const shareTitle = title;
 
-  const onVote = async (voteType: 'upvote' | 'downvote') => {
+  // Reset copied state after 2 seconds
+  useEffect(() => {
+    if (copied) {
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copied]);
+
+  const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
     try {
       const updatedBlog = await handleVote(blogId, voteType);
       setVoteCount({
         upvotes: updatedBlog.blog.upVotes,
         downvotes: updatedBlog.blog.downVotes,
       });
+
+      // Set which button was clicked for visual feedback
+      setHasVoted({
+        up: voteType === 'upvote',
+        down: voteType === 'downvote'
+      });
+
+      // Reset after 1 second for UI feedback
+      setTimeout(() => {
+        setHasVoted({ up: false, down: false });
+      }, 1000);
     } catch (error) {
       console.error('Error handling vote:', error);
     }
   };
 
-  const onShareClick = () => {
-    setShareDialogBox(true);
-  }
+  const handleShareClick = () => {
+    setShareDialogOpen(true);
+  };
 
-  const onAddComment = async () => {
-    setisCommenting(true);
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      setCommentError('Comment cannot be empty');
+      return;
+    }
+    
+    setCommentError('');
+    setIsCommenting(true);
+    
     try {
-      if(newComment.length>0)
-      {const comment = await addComment(blogId, newComment);
+      const comment = await addComment(blogId, newComment.trim());
       setComments([...comments, comment.comment]);
-      setNewComment('');}
-      else{setisCommenting(false)}
+      setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
-    }finally
-    {
-      setisCommenting(false)
+      setCommentError('Failed to post comment. Please try again.');
+    } finally {
+      setIsCommenting(false);
     }
   };
 
-  const handleFollow = async () => {
+  const handleFollowToggle = async () => {
     setLoading(true);
     try {
       if (isFollower) {
@@ -87,8 +122,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
       } else {
         await followUser(author.id);
       }
-      setIsFollower(!isFollower); // Toggle the follower state
-       // Refetch the page
+      setIsFollower(!isFollower);
     } catch (error) {
       console.error(error.message);
     } finally {
@@ -96,147 +130,370 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
     }
   };
 
-  const shareUrl = `https://blogfiles.vercel.app/blog/viewer/${blogId}`;
-  const shareTitle = title;
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+  };
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   return (
-    <>
-      {shareDialogBox && (
-        <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
-          <div className="overflow-hidden rounded-xl bg-gradient-to-br from-[#E2DFD0]/20 to-[#E2DFD0]/30 backdrop-filter backdrop-blur-lg border border-[#E2DFD0]/30 shadow-lg transition-all duration-300 p-6">
-            <div className="flex justify-between mb-4 text-xl font-semibold text-amber-100">
-              <div>Share</div>
-              <div className="cursor-pointer" onClick={() => { setShareDialogBox(false) }}>
-                <X />
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black py-6 px-4 sm:px-6 relative">
+      {/* Background blobs */}
+      <div className="absolute top-40 left-1/4 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl opacity-10 animate-pulse"></div>
+      <div className="absolute bottom-40 right-1/4 w-80 h-96 bg-blue-600 rounded-full filter blur-3xl opacity-10 animate-pulse animation-delay-2000"></div>
+      
+      {/* Share Dialog */}
+      {shareDialogOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md p-6 bg-gray-900/90 rounded-xl border border-gray-700 shadow-2xl">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-bold text-white">Share this article</h3>
+              <button 
+                onClick={() => setShareDialogOpen(false)}
+                className="p-1 rounded-full hover:bg-gray-700/70 transition-colors text-gray-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <h2 className="md:text-xl text-lg gap-x-1 font-semibold mb-4 text-gray-300">
-              {title}
-            </h2>
-            <div className="flex justify-center mt-4 space-x-4">
+            
+            <div className="mb-5">
+              <p className="text-gray-300 text-sm font-medium truncate">{title}</p>
+            </div>
+            
+            <div className="flex justify-center gap-6 mb-6">
               <TwitterShareButton url={shareUrl} title={shareTitle}>
-                <XIcon size={32} round />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="p-3 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors">
+                    <XIcon size={22} round />
+                  </div>
+                  <span className="text-xs text-gray-400">Twitter</span>
+                </div>
               </TwitterShareButton>
+              
               <WhatsappShareButton url={shareUrl} title={shareTitle}>
-                <WhatsappIcon size={32} round />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="p-3 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors">
+                    <WhatsappIcon size={22} round />
+                  </div>
+                  <span className="text-xs text-gray-400">WhatsApp</span>
+                </div>
               </WhatsappShareButton>
+              
               <TelegramShareButton url={shareUrl} title={shareTitle}>
-                <TelegramIcon size={32} round />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="p-3 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors">
+                    <TelegramIcon size={22} round />
+                  </div>
+                  <span className="text-xs text-gray-400">Telegram</span>
+                </div>
               </TelegramShareButton>
+              
               <FacebookShareButton url={shareUrl} title={shareTitle}>
-                <FacebookIcon size={32} round />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="p-3 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors">
+                    <FacebookIcon size={22} round />
+                  </div>
+                  <span className="text-xs text-gray-400">Facebook</span>
+                </div>
               </FacebookShareButton>
             </div>
-            <div className="mt-4 flex items-center space-x-2">
-              <input
-                type="text"
-                value={shareUrl}
-                readOnly
-                className="w-full p-2 text-gray-800 bg-gray-200 rounded"
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(shareUrl);
-                  alert('URL copied to clipboard!');
-                }}
-                className="text-white"
-              >
-                <Clipboard size={24} className="text-gray-300 hover:text-white" />
-              </button>
+            
+            <div className="relative">
+              <div className="flex">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="w-full p-3 bg-gray-800 text-gray-200 rounded-lg text-sm border border-gray-700 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {copied ? <Check size={18} /> : <Copy size={18} />}
+                </button>
+              </div>
+              {copied && (
+                <p className="text-green-400 text-xs mt-1 ml-1">Copied to clipboard!</p>
+              )}
             </div>
           </div>
         </div>
       )}
-      <div className='md:flex flex-row '>
-        <div className="w-full md:w-8/12 shadow-lg bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform p-8 rounded max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
-          <div className='flex justify-between items-center mb-4'>
-            <h1 className="md:text-3xl text-2xl text-white font-bold">{title}</h1>
-            <div className='text-white cursor-pointer' onClick={onShareClick}><Share /></div>
-          </div>
-
-          <div className='flex justify-between items-center'>
-            <div className="mb-4 flex items-center">
-              <Image
-                src={author.profilePhoto}
-                height={100}
-                width={100}
-                loading='lazy'
-                alt={`${author.firstName} ${author.lastName}`}
-                className="w-10 h-10 rounded-full mr-3"
-              />
-              <div className='flex flex-col'>
-                <span className="text-gray-100">{`${author.firstName} ${author.lastName}`}</span>
-                <span className="text-gray-300 text-xs">{`@${author.username}`}</span>
-              </div>
-            </div>
-            {followButton ? (
-              <div
-                onClick={handleFollow}
-                className={`py-2 px-3 md:text-sm text-xs text-white rounded-md cursor-pointer ${loading ? 'bg-gray-400' : isFollower ? 'bg-red-500 hover:bg-red-600' : 'bg-orange-400 hover:bg-orange-500'}`}>
-                {loading ?<LoaderPinwheel size={18} className='animate-spin'/> : isFollower ? 'Unfollow' : 'Follow'}
-              </div>
-            ) : null}
-          </div>
-
-          <Image
-            src={imageUrl}
-            unoptimized={true}
-            height={100}
-            width={100}
-            alt='blog_image'
-            className='w-full bg-white p-3 rounded mb-3'
-          />
-          <div className="prose text-gray-200 prose-headings:text-white prose-strong:text-white prose-blockquote:text-white w-full">
-            {parse(content)}
-          </div>
-
-          <div className="flex flex-col sm:flex-row mt-2 space-x-4 items-center">
-            <div className='flex items-center mt-4 space-x-2'>
-              <button onClick={() => onVote('upvote')} className="flex px-4 gap-x-2 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
-                <ArrowBigUpIcon />{voteCount.upvotes}
-              </button>
-              <button onClick={() => onVote('downvote')} className="flex px-4 gap-x-2  py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300">
-                <ArrowBigDownIcon />{voteCount.downvotes}
-              </button>
-            </div>
-           {/* <div className="text-gray-300 items-center"><div className='flex gap-x-1 items-center'><EyeIcon /> {viewCount}</div></div>   */}
-          </div>
-        </div>
-        {/* comment section */}
-        <div className="z-50 md:w-4/12 w-full px-4 max-h-screen overflow-y-scroll scrollbar-thumb-rounded">
-          <h2 className="text-xl text-white mb-2 p-2">Comments</h2>
-          <ul className="space-y-2">
-            {comments.map((comment) => (
-              <li key={comment.id} className="bg-gray-800 bg-opacity-40 p-4 rounded-lg">
-                <div className="flex items-center mb-1">
-                  {comment.author && (
-                    <Image
-                      src={comment.author.profilePhoto}
-                      height={20}
-                      width={20}
-                      alt={`${comment.author.firstName} ${comment.author.lastName}`}
-                    />
-                  )}
-                  <div className="ml-1 text-sm gap-x-1 text-gray-400">{comment.author ?` @ ${comment.author.username}`: 'You'}</div>
+      
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Article Column */}
+          <div className="w-full lg:w-8/12">
+            {/* Article Card */}
+            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl overflow-hidden shadow-xl">
+              {/* Cover Image */}
+              <div className="relative w-full h-72 overflow-hidden">
+                <Image
+                  src={imageUrl}
+                  fill
+                  className="object-cover"
+                  alt={title}
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70"></div>
+                
+                {/* Floating Action Buttons */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <button 
+                    onClick={handleShareClick}
+                    className="p-2 bg-gray-800/80 hover:bg-gray-700 rounded-full backdrop-blur-sm text-white transition-colors"
+                    aria-label="Share"
+                  >
+                    <Share2 size={18} />
+                  </button>
+                  <button 
+                    className="p-2 bg-gray-800/80 hover:bg-gray-700 rounded-full backdrop-blur-sm text-white transition-colors"
+                    aria-label="Bookmark"
+                  >
+                    <BookmarkPlus size={18} />
+                  </button>
                 </div>
-                <p className="text-gray-200">{comment.content}</p>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-2">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="w-full p-2 bg-gray-800 text-gray-200 rounded-lg"
-              placeholder="Add a comment"
-            />
-            <button onClick={onAddComment} className="mt-2 md:text-sm text-xs px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300">
-            {isCommenting?<Loader2 size={15} className=' animate-spin '/>: <div>Post Comment</div>}
-          </button>
+              </div>
+              
+              {/* Content Container */}
+              <div className="p-6 lg:p-8">
+                {/* Title */}
+                <h1 className="text-2xl lg:text-3xl font-bold text-white mb-4 tracking-tight">{title}</h1>
+                
+                {/* Author & Stats */}
+                <div className="flex flex-wrap justify-between items-center mb-6 pb-6 border-b border-gray-800">
+                  {/* Author info */}
+                  <div className="flex items-center gap-3 mb-4 sm:mb-0">
+                    <Image
+                      src={author.profilePhoto}
+                      height={48}
+                      width={48}
+                      alt={`${author.firstName} ${author.lastName}`}
+                      className="rounded-full border-2 border-purple-500/30"
+                    />
+                    <div>
+                      <div className="text-white font-medium">{`${author.firstName} ${author.lastName}`}</div>
+                      <div className="text-gray-400 text-sm">{`@${author.username}`}</div>
+                    </div>
+                    
+                    {followButton && (
+                      <button
+                        onClick={handleFollowToggle}
+                        disabled={loading}
+                        className={`ml-4 py-1.5 px-4 text-sm rounded-full transition-colors ${
+                          loading 
+                            ? 'bg-gray-700 text-gray-300' 
+                            : isFollower 
+                              ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                              : 'bg-purple-600 hover:bg-purple-700 text-white'
+                        }`}
+                      >
+                        {loading ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : isFollower ? (
+                          'Following'
+                        ) : (
+                          'Follow'
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="flex gap-4 text-sm">
+                    <div className="flex items-center gap-1 text-gray-400">
+                      <EyeIcon size={16} />
+                      <span>{viewCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-gray-400">
+                      <MessageSquare size={16} />
+                      <span>{comments.length}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-gray-400">
+                      <Calendar size={16} />
+                      <span>
+                        {formatDate(createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Article Content */}
+                <article className="prose prose-invert prose-lg max-w-none prose-headings:text-gray-100 prose-p:text-gray-300 prose-strong:text-white prose-a:text-purple-400 hover:prose-a:text-purple-300 prose-blockquote:border-purple-500 prose-blockquote:bg-gray-800/50 prose-blockquote:p-2 prose-blockquote:rounded prose-code:text-purple-300 prose-pre:bg-gray-800/70">
+                  {parse(content)}
+                </article>
+                
+                {/* Voting Section */}
+                <div className="mt-10 pt-6 border-t border-gray-800">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleVoteAction('upvote')} 
+                        className={`flex items-center gap-2 py-2 px-4 rounded-lg ${
+                          hasVoted.up 
+                            ? 'bg-green-600 text-white' 
+                            : 'bg-gray-800 hover:bg-gray-700 text-white'
+                        } transition-colors`}
+                      >
+                        <ThumbsUp size={18} />
+                        <span>{voteCount.upvotes}</span>
+                      </button>
+                      <button 
+                        onClick={() => handleVoteAction('downvote')} 
+                        className={`flex items-center gap-2 py-2 px-4 rounded-lg ${
+                          hasVoted.down 
+                            ? 'bg-red-600 text-white' 
+                            : 'bg-gray-800 hover:bg-gray-700 text-white'
+                        } transition-colors`}
+                      >
+                        <ThumbsDown size={18} />
+                        <span>{voteCount.downvotes}</span>
+                      </button>
+                    </div>
+                    
+                    <button 
+                      onClick={handleShareClick}
+                      className="flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                    >
+                      <Share2 size={18} />
+                      <span>Share</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Comments Column */}
+          <div className="w-full lg:w-4/12">
+            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl shadow-xl h-full">
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <MessageSquare size={20} />
+                  Comments
+                  <span className="text-sm font-normal text-gray-400 ml-2">({comments.length})</span>
+                </h2>
+                
+                {/* Comment Form */}
+                <div className="mb-8">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => {
+                      setNewComment(e.target.value);
+                      if (commentError) setCommentError('');
+                    }}
+                    className="w-full p-3 bg-gray-800/80 text-white rounded-lg border border-gray-700 resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    placeholder="Share your thoughts..."
+                    rows={3}
+                  />
+                  {commentError && (
+                    <div className="mt-1 text-red-400 text-sm flex items-center gap-1">
+                      <AlertCircle size={14} />
+                      {commentError}
+                    </div>
+                  )}
+                  <button 
+                    onClick={handleAddComment}
+                    disabled={isCommenting}
+                    className={`mt-2 py-2 px-4 rounded-lg flex items-center justify-center gap-2 w-full ${
+                      isCommenting 
+                        ? 'bg-gray-700 text-gray-300 cursor-not-allowed' 
+                        : 'bg-purple-600 hover:bg-purple-700 text-white'
+                    } transition-colors`}
+                  >
+                    {isCommenting ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Posting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare size={16} />
+                        <span>Post Comment</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Comments List */}
+                {comments.length > 0 ? (
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image
+                            src={comment.author?.profilePhoto || '/default-avatar.png'}
+                            height={36}
+                            width={36}
+                            className="rounded-full"
+                            alt={comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : 'Anonymous'}
+                          />
+                          <div>
+                            <div className="text-white font-medium">
+                              {comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : 'You'}
+                            </div>
+                            <div className="text-gray-400 text-xs flex items-center gap-2">
+                              <span>@{comment.author ? comment.author.username : 'you'}</span>
+                              <span className="inline-block w-1 h-1 bg-gray-500 rounded-full"></span>
+                              <span>{formatDate(comment.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-gray-300 mt-1">{comment.content}</p>
+                        <div className="mt-3 flex items-center gap-3">
+                          <button className="text-gray-400 hover:text-purple-400 transition-colors text-xs flex items-center gap-1">
+                            <Heart size={14} />
+                            <span>Like</span>
+                          </button>
+                          <button className="text-gray-400 hover:text-purple-400 transition-colors text-xs flex items-center gap-1">
+                            <MessageSquare size={14} />
+                            <span>Reply</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-800/30 rounded-lg p-6 text-center border border-dashed border-gray-700">
+                    <Users className="mx-auto text-gray-500 mb-2" size={24} />
+                    <p className="text-gray-400">Be the first to comment!</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
+  );
+};
+
+// Missing component import
+const Check = (props: any) => {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width={props.size || 24} 
+      height={props.size || 24} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={props.className}
+    >
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
   );
 };
 

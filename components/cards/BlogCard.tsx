@@ -59,13 +59,13 @@ const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
       <div className="relative overflow-hidden rounded-lg">
       </div>
       <div className="p-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-1 text-white">{blog.title}</h2>
-        <div className='flex mb-2 bg-yellow-50 font-semibold px-2 py-1 rounded-2xl w-fit items-center gap-1'>
+        <h2 className="text-xl md:text-2xl font-semibold mb-1 text-white line-clamp-2">{blog.title}</h2>
+        <div className='flex bg-yellow-50 mb-1 font-semibold px-1 py-1 rounded-2xl w-fit items-center gap-1'>
           <Image
             alt="author image"
             src={blog.author.profilePhoto}
-            height={30}
-            width={30}
+            height={20}
+            width={20}
             className="rounded-full"
           />
           <p className="text-gray-900 text-xs">{blog.author.firstName} {blog.author.lastName}</p>
