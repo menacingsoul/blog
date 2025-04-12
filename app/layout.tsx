@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import React from 'react'
 import {Poppins } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
-
+import { Analytics } from "@vercel/analytics/react"
 
 const inter = Poppins({
   weight: '300',
@@ -23,6 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
+    <Analytics />
     <html lang="en">
       <body className={inter.className}>{children}</body>
     </html>
