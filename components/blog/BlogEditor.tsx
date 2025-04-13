@@ -93,7 +93,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     try {
       setShowConfirm(false);
       const res = await fetch(`/api/blog/${blogId}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -124,7 +124,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     setSavingDraft(true);
     try {
       await fetch(`/api/blog/${blogId}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -132,7 +132,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           title,
           description,
           content,
-          published: false,
+          publish: false,
           imageUrl,
         }),
       });
@@ -151,7 +151,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setIsAutosaving(true);
       try {
         await fetch(`/api/blog/${blogId}`, {
-          method: "PATCH",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
@@ -159,7 +159,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             title,
             description,
             content,
-            published: false,
+            publish: false,
             imageUrl,
           }),
         });

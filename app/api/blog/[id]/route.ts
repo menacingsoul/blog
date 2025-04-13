@@ -3,24 +3,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
 import { getUserByClerkID } from '@/utils/auth';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { title, content, description, bool ,imageUrl } = await req.json();
-
+  const { title, content, description, published ,imageUrl } = await req.json();
   try {
-    const user = await getUserByClerkID();
-
     const updatedBlog = await prisma.blog.update({
       where: { id },
       data: {
         title,
         description,
         content,
-        published:bool,
+        published,
         imageUrl
       },
     });
-
     return NextResponse.json(updatedBlog);
   } catch (error) {
     console.error('Error updating blog:', error);
@@ -28,9 +24,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-
   try {
     const blog = await prisma.blog.findUnique({
       where: { id },
@@ -59,13 +55,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!blog) {
       return NextResponse.json({ message: 'Blog not found' }, { status: 404 });
     }
-
     return NextResponse.json(blog);
   } catch (error) {
     console.error('Error fetching blog:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
@@ -102,11 +98,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 }
 
+
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
 
-    // Delete comments associated with the blog
     await prisma.view.deleteMany({
       where:{
         blogId:id,
@@ -122,8 +118,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         blogId: id,
       },
     });
-
-    // Delete the blog
     await prisma.blog.delete({
       where: { id },
     });

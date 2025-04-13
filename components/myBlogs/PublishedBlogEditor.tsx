@@ -88,7 +88,7 @@ const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
     try {
       setShowConfirm(false);
       const res = await fetch(`/api/blog/${blogId}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -96,7 +96,7 @@ const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
           title,
           description,
           content,
-          published: true,
+          published : true,
           imageUrl,
         }),
       });
