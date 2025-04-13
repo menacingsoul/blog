@@ -1,8 +1,8 @@
-// components/BlogCard.tsx
 'use client'
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Clock, Eye, ChevronRight } from 'lucide-react';
 import BlogCardSkeleton from '../BlogCardSkeleton';
 
 interface View {
@@ -26,6 +26,8 @@ interface Blog {
 const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
     return () => clearTimeout(timer);
@@ -51,30 +53,76 @@ const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
     timeZone: 'Asia/Kolkata',
   });
 
+  // Generate random background gradient for blog cards
+  const gradients = [
+    'from-indigo-600/10 to-fuchsia-600/10 border-indigo-500/20',
+    'from-fuchsia-600/10 to-indigo-600/10 border-fuchsia-500/20',
+    'from-purple-600/10 to-indigo-600/10 border-purple-500/20',
+    'from-indigo-600/10 to-purple-600/10 border-indigo-500/20'
+  ];
+  
+  const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+
   return (
-    <div onClick={handleClick} className="max-w-full h-56 rounded-xl overflow-hidden shadow-lg 
-      bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
-      border border-white/30 hover:border-white/50
-      hover:shadow-2xl transition-all duration-300 transform cursor-pointer">
-      <div className="relative overflow-hidden rounded-lg">
-      </div>
-      <div className="p-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-1 text-white line-clamp-2">{blog.title}</h2>
-        <div className='flex bg-yellow-50 mb-1 font-semibold px-1 py-1 rounded-2xl w-fit items-center gap-1'>
-          <Image
-            alt="author image"
-            src={blog.author.profilePhoto}
-            height={20}
-            width={20}
-            className="rounded-full"
-          />
-          <p className="text-gray-900 text-xs">{blog.author.firstName} {blog.author.lastName}</p>
+    
+    <div 
+      className={`bg-gradient-to-br ${randomGradient} border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer`}
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="p-5">
+        {/* Author information and date */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Image
+              src={blog.author.profilePhoto}
+              alt={`${blog.author.firstName}'s profile`}
+              width={40}
+              height={40}
+              className="rounded-full border border-zinc-700/50"
+            />
+            <div>
+              <h3 className="text-white text-sm font-medium">
+                {blog.author.firstName} {blog.author.lastName}
+              </h3>
+              <div className="flex items-center text-zinc-400 text-xs">
+                <Clock size={12} className="mr-1" />
+                <span>{creationDate}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center text-zinc-400 text-xs">
+            <Eye size={14} className="mr-1" />
+            <span>{blog.views ? (Array.isArray(blog.views) ? blog.views.length : 1) : 0}</span>
+          </div>
         </div>
-        <h4 className='text-red-100 mb-1 text-sm'>{creationDate}</h4>
-        <p className="text-gray-300 line-clamp-2">{blog.description}</p>
+        
+        {/* Blog title */}
+        <h2 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-300 transition-colors">
+          {blog.title}
+        </h2>
+        
+        {/* Blog description */}
+        <p className="text-zinc-300 text-sm mb-4 line-clamp-3">
+          {blog.description}
+        </p>
+        
+        {/* Read more button with animation */}
+        <div className="flex justify-end">
+          <button 
+            className={`text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center transition-all duration-300 ${
+              isHovered ? 'translate-x-0 opacity-100' : '-translate-x-2 opacity-70'
+            }`}
+          >
+            Read more
+            <ChevronRight size={16} className={`transition-all duration-300 ${isHovered ? 'ml-2' : 'ml-1'}`} />
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default BlogCard;

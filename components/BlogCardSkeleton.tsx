@@ -1,17 +1,41 @@
 // components/BlogCardSkeleton.tsx
-const BlogCardSkeleton = () => (
-  <div className="max-w-full h-56 rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg border border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform cursor-pointer animate-pulse">
-    <div className=" p-2">
-    <div className="relative overflow-hidden rounded-full bg-gray-200 h-12 w-12"></div>
-    <div className="mt-3">
-      <div className="bg-gray-200 h-8 w-2/4 mb-2 rounded-lg"></div>
-      <div className="bg-gray-200 h-5 w-11/12 mb-2 rounded"></div>
-      <div className="bg-gray-200 h-5 w-11/12 mb-2 rounded"></div>
-      <div className="bg-gray-200 h-5 w-11/12 mb-2 rounded"></div>
+'use client'
+import React from 'react';
+
+const BlogCardSkeleton: React.FC = () => {
+  return (
+    <div className="bg-gradient-to-br from-zinc-800/40 to-zinc-900/40 border border-zinc-700/20 rounded-xl overflow-hidden shadow-lg animate-pulse">
+      <div className="p-5">
+        {/* Author information and date skeleton */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-zinc-700/50"></div>
+            <div>
+              <div className="h-4 w-32 bg-zinc-700/50 rounded"></div>
+              <div className="h-3 w-24 bg-zinc-700/50 rounded mt-2"></div>
+            </div>
+          </div>
+          
+          <div className="h-3 w-10 bg-zinc-700/50 rounded"></div>
+        </div>
+        
+        {/* Blog title skeleton */}
+        <div className="h-7 bg-zinc-700/50 rounded mb-3"></div>
+        
+        {/* Blog description skeleton */}
+        <div className="space-y-2 mb-4">
+          <div className="h-4 bg-zinc-700/50 rounded"></div>
+          <div className="h-4 bg-zinc-700/50 rounded"></div>
+          <div className="h-4 w-3/4 bg-zinc-700/50 rounded"></div>
+        </div>
+        
+        {/* Read more button skeleton */}
+        <div className="flex justify-end">
+          <div className="h-4 w-20 bg-zinc-700/50 rounded"></div>
+        </div>
+      </div>
     </div>
-    </div>
-   
-  </div>
-);
+  );
+};
 
 export default BlogCardSkeleton;
