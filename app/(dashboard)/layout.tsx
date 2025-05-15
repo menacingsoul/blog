@@ -1,17 +1,16 @@
 import { ReactNode } from "react";
 import SidebarToggle from "@/components/SidebarToggle";
+
 interface Props {
   children: ReactNode;
 }
 
 const DashboardLayout = ({ children }: Props) => {
-  
-
   return (
-       <div className="h-screen w-screen flex flex-col md:flex-row">
+    <div className="w-screen flex flex-col md:flex-row">
       <SidebarToggle />
-      <div className="md:ml-[280px] h-full flex-1">
-        <div className="h-full overflow-auto">{children}</div>
+      <div className="md:ml-[230px] flex-1 h-full overflow-auto">
+        {children}
       </div>
     </div>
   );

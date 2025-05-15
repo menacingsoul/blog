@@ -12,10 +12,7 @@ const raleway = Raleway({
 
 const links = [
   { href: '/home', label: 'Home', icon: <Home className="w-5 h-5" /> },
-  { href: '/explore', label: 'Explore', icon: <Search className="w-5 h-5" /> },
   { href: '/myblogs', label: 'My Blogs', icon: <BookOpen className="w-5 h-5" /> },
-  { href: '/community', label: 'Community', icon: <Users className="w-5 h-5" /> },
-  { href: '/notifications', label: 'Notifications', icon: <Bell className="w-5 h-5" /> },
   { href: '/profile', label: 'Profile', icon: <User2 className="w-5 h-5" /> },
 ];
 
@@ -69,7 +66,7 @@ const SidebarToggle = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-[280px] bg-zinc-900/95 backdrop-filter backdrop-blur-lg border-r border-zinc-700/30 shadow-2xl transition-all duration-300 ease-in-out transform ${
+        className={`fixed top-0 left-0 h-full w-[230px] bg-zinc-900/95 backdrop-filter backdrop-blur-lg border-r border-zinc-700/30 shadow-2xl transition-all duration-300 ease-in-out transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 z-50`}
       >
@@ -146,18 +143,6 @@ const SidebarToggle = () => {
               );
             })}
           </ul>
-          
-          <div className="mt-8 px-3">
-            <div className="bg-gradient-to-r from-indigo-600/10 to-fuchsia-600/10 border border-indigo-500/20 rounded-xl p-4">
-              <h3 className="text-white text-sm font-semibold mb-2">Write a new blog</h3>
-              <p className="text-zinc-400 text-xs mb-3">Share your thoughts with the community</p>
-              <Link href="/create-blog">
-                <button className="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white rounded-lg py-2 text-sm font-medium transition-all duration-300">
-                  Create Post
-                </button>
-              </Link>
-            </div>
-          </div>
         </nav>
 
         
