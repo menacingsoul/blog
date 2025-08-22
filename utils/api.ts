@@ -81,6 +81,33 @@ export const addComment = async (id: string, content: string) => {
   }
 };
 
+export const addReply = async (blogId: string, content: string, parentId: string) => {
+  try {
+    const res = await fetch(createURL(`/api/blog/${blogId}`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'comment',
+        content,
+        parentId,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to add reply');
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error adding reply:', error);
+    throw error;
+  }
+};
+
+
 export const deleteBlog = async (id: String) => {
   try {
     const res = await fetch(createURL(`/api/blog/${id}`), {

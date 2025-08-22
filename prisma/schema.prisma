@@ -37,6 +37,7 @@ model User {
 
   following User[] @relation("Follows")
   followers User[] @relation("Follows")
+  notifications Notification[]
 }
 
 model Blog {
@@ -58,22 +59,38 @@ model Blog {
   votes       Vote[]
   views       View[]
   readingHistory ReadingHistory[]
+  notifications Notification[]
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  upVotes   Int      @default(0)
-  downVotes Int      @default(0)
-  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime  @default(now())
   authorId  String
-  blog      Blog     @relation(fields: [blogId], references: [id])
   blogId    String
+  parentId  String?   // for replies
 
-  votes     Vote[]
+  author    User      @relation(fields: [authorId], references: [id])
+  blog      Blog      @relation(fields: [blogId], references: [id])
+  parent    Comment?  @relation("ReplyTo", fields: [parentId], references: [id])
+  replies   Comment[] @relation("ReplyTo")
+
+  notifications Notification[]
 }
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // 'reply' or 'comment'
+  userId    String   // who receives it
+  commentId String?
+  blogId    String?
+  createdAt DateTime @default(now())
+  message   String
+  user      User     @relation(fields: [userId], references: [id])
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  blog      Blog?    @relation(fields: [blogId], references: [id])
+}
+
 
 model Vote {
   id        String   @id @default(cuid())
@@ -83,9 +100,6 @@ model Vote {
   userId    String
   blog      Blog?    @relation(fields: [blogId], references: [id])
   blogId    String?
-  comment   Comment? @relation(fields: [commentId], references: [id])
-  commentId String?
-
   @@unique([userId, blogId]) 
 }
 

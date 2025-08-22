@@ -1,15 +1,16 @@
 // components/BlogViewer.tsx
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
 import { TwitterShareButton, WhatsappShareButton, TelegramShareButton, FacebookShareButton, TelegramIcon, XIcon, WhatsappIcon, FacebookIcon } from 'react-share';
-import { handleVote, addComment, followUser, unFollowUser } from '@/utils/api';
+import { handleVote, addComment, followUser, unFollowUser, addReply } from '@/utils/api';
 import { 
   EyeIcon, Share2, X, ThumbsUp, ThumbsDown, Copy, 
   Loader2, BookmarkPlus, MessageSquare, Calendar, Users, 
-  Heart, AlertCircle
+  Heart, AlertCircle, CornerDownRight, Send, Reply, ChevronDown, ChevronUp, MoreHorizontal, Clock
 } from 'lucide-react';
+import Comments from '../Comments';
 
 interface Author {
   profilePhoto: string;
@@ -19,11 +20,19 @@ interface Author {
   id: string;
 }
 
-interface Comment {
+interface Reply {
   id: string;
   author: Author;
   content: string;
   createdAt: Date;
+}
+
+interface Comment { 
+  id: string;
+  author: Author;
+  content: string;
+  createdAt: Date;
+  replies?: Reply[];
 }
 
 interface BlogViewerProps {
@@ -42,18 +51,26 @@ interface BlogViewerProps {
 }
 
 const BlogViewer: React.FC<BlogViewerProps> = ({
-  blogId, title, content, upVotes, downVotes, author, initialComments, viewCount, imageUrl, followButton, unfollow,createdAt
+  blogId, title, content, upVotes, downVotes, author, initialComments, viewCount, imageUrl, followButton, unfollow, createdAt
 }) => {
-  const [comments, setComments] = useState(initialComments);
-  const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState<Comment[]>(initialComments);
+  // const [newComment, setNewComment] = useState('');
+  // const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  // const [replyContent, setReplyContent] = useState('');
   const [voteCount, setVoteCount] = useState({ upvotes: upVotes, downvotes: downVotes });
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isFollower, setIsFollower] = useState(unfollow);
   const [loading, setLoading] = useState(false);
-  const [isCommenting, setIsCommenting] = useState(false);
+  // const [isCommenting, setIsCommenting] = useState(false);
+  // const [isReplying, setIsReplying] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [commentError, setCommentError] = useState('');
+  // const [commentError, setCommentError] = useState('');
+  // const [replyError, setReplyError] = useState('');
   const [hasVoted, setHasVoted] = useState({ up: false, down: false });
+  // const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  
+  const commentSectionRef = useRef<HTMLDivElement>(null);
+  // const replyInputRefs = useRef<{[key: string]: HTMLTextAreaElement | null}>({});
 
   const shareUrl = `https://blogfiles.vercel.app/blog/viewer/${blogId}`;
   const shareTitle = title;
@@ -65,6 +82,13 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
       return () => clearTimeout(timer);
     }
   }, [copied]);
+
+  // Scroll to reply input when replying
+  // useEffect(() => {
+  //   if (replyingTo && replyInputRefs.current[replyingTo]) {
+  //     replyInputRefs.current[replyingTo]?.focus();
+  //   }
+  // }, [replyingTo]);
 
   const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
     try {
@@ -93,26 +117,69 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
     setShareDialogOpen(true);
   };
 
-  const handleAddComment = async () => {
-    if (!newComment.trim()) {
-      setCommentError('Comment cannot be empty');
-      return;
-    }
+  // const handleAddComment = async () => {
+  //   if (!newComment.trim()) {
+  //     setCommentError('Comment cannot be empty');
+  //     return;
+  //   }
     
-    setCommentError('');
-    setIsCommenting(true);
+  //   setCommentError('');
+  //   setIsCommenting(true);
     
-    try {
-      const comment = await addComment(blogId, newComment.trim());
-      setComments([...comments, comment.comment]);
-      setNewComment('');
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      setCommentError('Failed to post comment. Please try again.');
-    } finally {
-      setIsCommenting(false);
-    }
-  };
+  //   try {
+  //     const result = await addComment(blogId, newComment.trim());
+  //     setComments([...comments, result.comment]);
+  //     setNewComment('');
+  //     // Scroll to comments section
+  //     commentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  //   } catch (error) {
+  //     console.error('Error adding comment:', error);
+  //     setCommentError('Failed to post comment. Please try again.');
+  //   } finally {
+  //     setIsCommenting(false);
+  //   }
+  // };
+
+  // const handleAddReply = async (commentId: string) => {
+  //   if (!replyContent.trim()) {
+  //     setReplyError('Reply cannot be empty');
+  //     return;
+  //   }
+    
+  //   setReplyError('');
+  //   setIsReplying(true);
+    
+  //   try {
+  //     const result = await addReply(blogId, replyContent.trim(), commentId);
+      
+  //     // Update comments state with the new reply
+  //     const updatedComments = comments.map(comment => {
+  //       if (comment.id === commentId) {
+  //         return {
+  //           ...comment,
+  //           replies: [...(comment.replies || []), result.reply]
+  //         };
+  //       }
+  //       return comment;
+  //     });
+      
+  //     setComments(updatedComments);
+  //     setReplyContent('');
+  //     setReplyingTo(null);
+      
+  //     // Ensure the comment with replies is expanded
+  //     setExpandedComments(prev => {
+  //       const updated = new Set(prev);
+  //       updated.add(commentId);
+  //       return updated;
+  //     });
+  //   } catch (error) {
+  //     console.error('Error adding reply:', error);
+  //     setReplyError('Failed to post reply. Please try again.');
+  //   } finally {
+  //     setIsReplying(false);
+  //   }
+  // };
 
   const handleFollowToggle = async () => {
     setLoading(true);
@@ -143,9 +210,53 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
     });
   };
 
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+    
+    let interval = seconds / 31536000; // seconds in a year
+    if (interval > 1) return Math.floor(interval) + 'y ago';
+    
+    interval = seconds / 2592000; // seconds in a month
+    if (interval > 1) return Math.floor(interval) + 'mo ago';
+    
+    interval = seconds / 86400; // seconds in a day
+    if (interval > 1) return Math.floor(interval) + 'd ago';
+    
+    interval = seconds / 3600; // seconds in an hour
+    if (interval > 1) return Math.floor(interval) + 'h ago';
+    
+    interval = seconds / 60; // seconds in a minute
+    if (interval > 1) return Math.floor(interval) + 'm ago';
+    
+    return Math.floor(seconds) + 's ago';
+  };
+
+  // const toggleReplying = (commentId: string) => {
+  //   setReplyingTo(replyingTo === commentId ? null : commentId);
+  //   setReplyContent('');
+  //   setReplyError('');
+  // };
+
+  // const toggleExpandComment = (commentId: string) => {
+  //   setExpandedComments(prev => {
+  //     const updated = new Set(prev);
+  //     if (updated.has(commentId)) {
+  //       updated.delete(commentId);
+  //     } else {
+  //       updated.add(commentId);
+  //     }
+  //     return updated;
+  //   });
+  // };
+
+  const totalCommentCount = comments.reduce((total, comment) => {
+    return total + 1 + (comment.replies?.length || 0);
+  }, 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black py-6 px-4 sm:px-6 relative">
-      {/* Background blobs */}
+      {/* Background elements */}
       <div className="absolute top-40 left-1/4 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl opacity-10 animate-pulse"></div>
       <div className="absolute bottom-40 right-1/4 w-80 h-96 bg-blue-600 rounded-full filter blur-3xl opacity-10 animate-pulse animation-delay-2000"></div>
       
@@ -234,7 +345,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
           {/* Article Column */}
           <div className="w-full lg:w-8/12">
             {/* Article Card */}
-            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl overflow-hidden shadow-xl">
+            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl overflow-hidden shadow-xl mb-6">
               {/* Cover Image */}
               <div className="relative w-full h-72 overflow-hidden">
                 <Image
@@ -310,15 +421,15 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
                   
                   {/* Stats */}
                   <div className="flex gap-4 text-sm">
-                    <div className="flex items-center gap-1 text-gray-400">
+                    <div className="flex items-center gap-1 text-gray-400" title="Views">
                       <EyeIcon size={16} />
                       <span>{viewCount}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-gray-400">
+                    <div className="flex items-center gap-1 text-gray-400" title="Comments">
                       <MessageSquare size={16} />
-                      <span>{comments.length}</span>
+                      <span>{totalCommentCount}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-gray-400">
+                    <div className="flex items-center gap-1 text-gray-400" title="Date published">
                       <Calendar size={16} />
                       <span>
                         {formatDate(createdAt)}
@@ -371,130 +482,30 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
                 </div>
               </div>
             </div>
+            
+            {/* Comments Section (on mobile, shows below article) */}
+            <div className="lg:hidden w-full">
+              <CommentsSection />
+            </div>
           </div>
           
-          {/* Comments Column */}
-          <div className="w-full lg:w-4/12">
-            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl shadow-xl h-full">
-              <div className="p-6">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <MessageSquare size={20} />
-                  Comments
-                  <span className="text-sm font-normal text-gray-400 ml-2">({comments.length})</span>
-                </h2>
-                
-                {/* Comment Form */}
-                <div className="mb-8">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => {
-                      setNewComment(e.target.value);
-                      if (commentError) setCommentError('');
-                    }}
-                    className="w-full p-3 bg-gray-800/80 text-white rounded-lg border border-gray-700 resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
-                    placeholder="Share your thoughts..."
-                    rows={3}
-                  />
-                  {commentError && (
-                    <div className="mt-1 text-red-400 text-sm flex items-center gap-1">
-                      <AlertCircle size={14} />
-                      {commentError}
-                    </div>
-                  )}
-                  <button 
-                    onClick={handleAddComment}
-                    disabled={isCommenting}
-                    className={`mt-2 py-2 px-4 rounded-lg flex items-center justify-center gap-2 w-full ${
-                      isCommenting 
-                        ? 'bg-gray-700 text-gray-300 cursor-not-allowed' 
-                        : 'bg-purple-600 hover:bg-purple-700 text-white'
-                    } transition-colors`}
-                  >
-                    {isCommenting ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        <span>Posting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <MessageSquare size={16} />
-                        <span>Post Comment</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                
-                {/* Comments List */}
-                {comments.length > 0 ? (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                    {comments.map((comment) => (
-                      <div key={comment.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image
-                            src={comment.author?.profilePhoto || '/default-avatar.png'}
-                            height={36}
-                            width={36}
-                            className="rounded-full"
-                            alt={comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : 'Anonymous'}
-                          />
-                          <div>
-                            <div className="text-white font-medium">
-                              {comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : 'You'}
-                            </div>
-                            <div className="text-gray-400 text-xs flex items-center gap-2">
-                              <span>@{comment.author ? comment.author.username : 'you'}</span>
-                              <span className="inline-block w-1 h-1 bg-gray-500 rounded-full"></span>
-                              <span>{formatDate(comment.createdAt)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-gray-300 mt-1">{comment.content}</p>
-                        <div className="mt-3 flex items-center gap-3">
-                          <button className="text-gray-400 hover:text-purple-400 transition-colors text-xs flex items-center gap-1">
-                            <Heart size={14} />
-                            <span>Like</span>
-                          </button>
-                          <button className="text-gray-400 hover:text-purple-400 transition-colors text-xs flex items-center gap-1">
-                            <MessageSquare size={14} />
-                            <span>Reply</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-gray-800/30 rounded-lg p-6 text-center border border-dashed border-gray-700">
-                    <Users className="mx-auto text-gray-500 mb-2" size={24} />
-                    <p className="text-gray-400">Be the first to comment!</p>
-                  </div>
-                )}
-              </div>
-            </div>
+          {/* Comments Column (on desktop) */}
+          <div className="hidden lg:block lg:w-4/12">
+            <CommentsSection />
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-// Missing component import
-const Check = (props: any) => {
+  
+  // Comments Section Component (for reuse in both mobile and desktop layouts)
+function CommentsSection() {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width={props.size || 24} 
-      height={props.size || 24} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={props.className}
-    >
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
+    <Comments 
+      blogId={blogId}
+      initialComments={initialComments}
+    />
   );
-};
+}}
 
 export default BlogViewer;
