@@ -8,7 +8,7 @@ import { handleVote, addComment, followUser, unFollowUser, addReply } from '@/ut
 import { 
   EyeIcon, Share2, X, ThumbsUp, ThumbsDown, Copy, 
   Loader2, BookmarkPlus, MessageSquare, Calendar, Users, 
-  Heart, AlertCircle, CornerDownRight, Send, Reply, ChevronDown, ChevronUp, MoreHorizontal, Clock
+  Heart, AlertCircle, CornerDownRight, Send, Reply, ChevronDown, ChevronUp, MoreHorizontal, Clock, Check
 } from 'lucide-react';
 import Comments from '../Comments';
 
@@ -190,7 +190,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
         await followUser(author.id);
       }
       setIsFollower(!isFollower);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error.message);
     } finally {
       setLoading(false);
