@@ -46,7 +46,7 @@ const PublishedEditorPage = async ({ params }: { params: { id: string } }) => {
           initialDescription={blog.description} 
           initialContent={blog.content} 
           initialTitle={blog.title} 
-          initialImageUrl={blog.imageUrl}
+          initialImageUrl={blog.imageUrl || ''}
         />
       </div>
     </div>

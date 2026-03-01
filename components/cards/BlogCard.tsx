@@ -1,72 +1,55 @@
 'use client'
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Clock, Eye, ChevronRight } from 'lucide-react';
-import BlogCardSkeleton from '../BlogCardSkeleton';
+import { useState } from 'react';
+import { Clock, Eye, ChevronRight, BookOpen } from 'lucide-react';
+import { estimateReadingTime } from '@/utils/readingTime';
+import type { BlogCard as BlogCardType } from '@/types';
 
-interface View {
-  id: string;
-  blog: Blog;
-}
+const GRADIENTS = [
+  'from-indigo-600/10 to-fuchsia-600/10 border-indigo-500/20',
+  'from-fuchsia-600/10 to-indigo-600/10 border-fuchsia-500/20',
+  'from-purple-600/10 to-indigo-600/10 border-purple-500/20',
+  'from-indigo-600/10 to-purple-600/10 border-indigo-500/20',
+];
 
-interface Blog {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Date;
-  views: View;
-  author: {
-    profilePhoto: string;
-    firstName: string;
-    lastName: string;
-  };
-}
+// Deterministic gradient based on blog id hash
+const getGradient = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
+};
 
-const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
+const BlogCard: React.FC<{ blog: BlogCardType; featured?: boolean }> = ({ blog, featured }) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) return <BlogCardSkeleton />;
 
   const handleClick = async () => {
     try {
-      await fetch(`/api/views/${blog.id}`, {
-        method: 'POST',
-      });
+      await fetch(`/api/views/${blog.id}`, { method: 'POST' });
       router.push(`/blog/viewer/${blog.id}`);
     } catch (error) {
       console.error('Failed to record view:', error);
+      router.push(`/blog/viewer/${blog.id}`);
     }
   };
 
-  const creationDate = new Date(blog.createdAt).toLocaleDateString('en-US', {
+  const creationDate = new Date(blog.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: 'Asia/Kolkata',
   });
 
-  // Generate random background gradient for blog cards
-  const gradients = [
-    'from-indigo-600/10 to-fuchsia-600/10 border-indigo-500/20',
-    'from-fuchsia-600/10 to-indigo-600/10 border-fuchsia-500/20',
-    'from-purple-600/10 to-indigo-600/10 border-purple-500/20',
-    'from-indigo-600/10 to-purple-600/10 border-indigo-500/20'
-  ];
-  
-  const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+  const readingTime = blog.content ? estimateReadingTime(blog.content) : null;
+  const gradient = getGradient(blog.id);
+  const viewCount = Array.isArray(blog.views) ? blog.views.length : 0;
+  const authorPhoto = blog.author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
 
   return (
-    
     <div 
-      className={`bg-gradient-to-br ${randomGradient} border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer`}
+      className={`bg-gradient-to-br ${gradient} border rounded-xl overflow-hidden shadow-lg hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer group`}
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -76,7 +59,7 @@ const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Image
-              src={blog.author.profilePhoto}
+              src={authorPhoto}
               alt={`${blog.author.firstName}'s profile`}
               width={40}
               height={40}
@@ -86,21 +69,31 @@ const BlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
               <h3 className="text-white text-sm font-medium">
                 {blog.author.firstName} {blog.author.lastName}
               </h3>
-              <div className="flex items-center text-zinc-400 text-xs">
-                <Clock size={12} className="mr-1" />
-                <span>{creationDate}</span>
+              <div className="flex items-center text-zinc-400 text-xs gap-2">
+                <span className="flex items-center gap-1">
+                  <Clock size={12} />
+                  {creationDate}
+                </span>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center text-zinc-400 text-xs">
-            <Eye size={14} className="mr-1" />
-            <span>{blog.views ? (Array.isArray(blog.views) ? blog.views.length : 1) : 0}</span>
+          <div className="flex items-center gap-3 text-zinc-400 text-xs">
+            {readingTime && (
+              <span className="flex items-center gap-1">
+                <BookOpen size={12} />
+                {readingTime} min
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <Eye size={14} />
+              {viewCount}
+            </span>
           </div>
         </div>
         
         {/* Blog title */}
-        <h2 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-300 transition-colors">
+        <h2 className={`${featured ? 'text-2xl' : 'text-xl'} font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-300 transition-colors`}>
           {blog.title}
         </h2>
         

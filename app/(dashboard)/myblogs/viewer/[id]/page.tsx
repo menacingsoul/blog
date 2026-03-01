@@ -29,6 +29,7 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
           id: true,
           author: {
             select: {
+              id: true,
               firstName: true,
               lastName: true,
               profilePhoto: true,
@@ -36,9 +37,19 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
             },
           },
           content: true,
+          createdAt: true,
+          _count: {
+            select: {
+              replies: true,
+              likes: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc' as const,
         },
       },
-      views: true,  // Include views relation
+      views: true,
     },
   });
 
@@ -54,16 +65,11 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
 
   return (
     <div className="h-screen overflow-y-scroll bg-gradient-to-br from-gray-900 to-black p-8">
-       {/* <div className="absolute top-32 left-1/4 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
-      <div className="absolute top-64 right-1/4 w-80 h-80 bg-pink-600 rounded-full filter blur-3xl opacity-10 animate-pulse animation-delay-2000"></div>
-      <div className="absolute bottom-32 left-1/3 w-72 h-72 bg-blue-600 rounded-full filter blur-3xl opacity-20 animate-pulse animation-delay-4000"></div> */}
-
        <div className='flex gap-x-2 items-center'>
        <AnalyticsButton id={id}/>
          <EditorCard id={id}/>
        </div>
       
-    
       <BlogViewer
         blogId={id}
         title={blog.title}
@@ -72,8 +78,8 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
         upVotes={blog.upVotes}
         downVotes={blog.downVotes}
         initialComments={blog.comments}
-        imageUrl={blog.imageUrl}
-        viewCount={viewCount}  // Pass view count to the BlogViewer component
+        imageUrl={blog.imageUrl || ''}
+        viewCount={viewCount}
       />
     </div>
   );

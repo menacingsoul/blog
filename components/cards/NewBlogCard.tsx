@@ -1,11 +1,9 @@
 "use client";
 import React from "react";
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Loader2 } from "lucide-react";
 import { createBlog } from "@/utils/api";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
-import { Loader2 } from "lucide-react";
 
 const NewBlogCard = () => {
   const router = useRouter();
@@ -17,35 +15,31 @@ const NewBlogCard = () => {
       const newBlog = await createBlog();
       router.push(`/blog/editor/${newBlog.id}`);
     } catch (error) {
-      alert("Error creating blog.");
-      toast.error("Error creating blog");
       console.error(error);
-    }finally{
+      alert("Error creating blog. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <>
-      {isLoading && (
-       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-       <div className="bg-white rounded-lg p-8 shadow-md">
-       <Loader2 className="mr-2 h-20 w-20 animate-spin" /> 
-       </div>
-     </div>
-    )}
-    {!isLoading&&(
-      <div
-        className="w-fit h-fit cursor-pointer rounded-xl overflow-hidden shadow-lg p-4 
-        bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg border 
-        border-white/30 hover:border-white/50 hover:shadow-2xl transition-all duration-300 transform flex 
-        items-center text-white"
+    <div className="flex justify-center mb-8">
+      <button
+        className={`cursor-pointer rounded-xl overflow-hidden shadow-lg px-6 py-3
+        bg-gradient-to-r from-indigo-600/20 to-fuchsia-600/20 backdrop-filter backdrop-blur-lg border 
+        border-indigo-500/30 hover:border-indigo-500/50 hover:shadow-indigo-500/10 hover:shadow-xl transition-all duration-300 flex 
+        items-center gap-2 text-white font-medium ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
         onClick={createBlogHandler}
+        disabled={isLoading}
       >
-        <PlusIcon className="w-6 h-6 " />
-        Create Blog
-      </div>)}
-    </>
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <PlusIcon className="w-5 h-5" />
+        )}
+        {isLoading ? "Creating..." : "Create New Blog"}
+      </button>
+    </div>
   );
 };
 

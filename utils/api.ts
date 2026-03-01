@@ -28,7 +28,7 @@ export const createBlog = async () => {
 export const fetchBlog = async (id: string) => {
   try {
     const res = await fetch(createURL(`/api/blog/${id}`), {
-      cache: 'no-store', // Ensure fetching latest data
+      cache: 'no-store',
     });
 
     if (!res.ok) {
@@ -107,8 +107,7 @@ export const addReply = async (blogId: string, content: string, parentId: string
   }
 };
 
-
-export const deleteBlog = async (id: String) => {
+export const deleteBlog = async (id: string) => {
   try {
     const res = await fetch(createURL(`/api/blog/${id}`), {
       method: 'DELETE',
@@ -124,8 +123,7 @@ export const deleteBlog = async (id: String) => {
     console.error('Error deleting blog:', error);
     throw error;
   }
-
-}
+};
 
 export const followUser = async (authorId: string) => {
   try {
@@ -142,8 +140,7 @@ export const followUser = async (authorId: string) => {
     }
 
     const data = await response.json();
-    return data.message; // Return the success message
-
+    return data.message;
   } catch (error) {
     console.error('Error following user:', error);
     throw new Error('Error following user');
@@ -165,8 +162,7 @@ export const unFollowUser = async (authorId: string) => {
     }
 
     const data = await response.json();
-    return data.message; // Return the success message
-
+    return data.message;
   } catch (error) {
     console.error('Error unfollowing user:', error);
     throw new Error('Error unfollowing user');
@@ -184,14 +180,132 @@ export const removeFollower = async (followerId: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to unfollow user');
+      throw new Error('Failed to remove follower');
     }
 
     const data = await response.json();
-    return data.message; // Return the success message
-
+    return data.message;
   } catch (error) {
-    console.error('Error unfollowing user:', error);
-    throw new Error('Error unfollowing user');
+    console.error('Error removing follower:', error);
+    throw new Error('Error removing follower');
+  }
+};
+
+// ---- NEW API FUNCTIONS ----
+
+export const toggleBookmark = async (blogId: string) => {
+  try {
+    const response = await fetch('/api/bookmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blogId }),
+    });
+    if (!response.ok) throw new Error('Failed to toggle bookmark');
+    return response.json();
+  } catch (error) {
+    console.error('Error toggling bookmark:', error);
+    throw error;
+  }
+};
+
+export const fetchBookmarks = async () => {
+  try {
+    const response = await fetch('/api/bookmarks');
+    if (!response.ok) throw new Error('Failed to fetch bookmarks');
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching bookmarks:', error);
+    throw error;
+  }
+};
+
+export const fetchNotifications = async (take = 20, skip = 0) => {
+  try {
+    const response = await fetch(`/api/notifications?take=${take}&skip=${skip}`);
+    if (!response.ok) throw new Error('Failed to fetch notifications');
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
+};
+
+export const markNotificationsRead = async (notificationIds?: string[]) => {
+  try {
+    const response = await fetch('/api/notifications', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationIds }),
+    });
+    if (!response.ok) throw new Error('Failed to mark notifications read');
+    return response.json();
+  } catch (error) {
+    console.error('Error marking notifications read:', error);
+    throw error;
+  }
+};
+
+export const toggleCommentLike = async (commentId: string) => {
+  try {
+    const response = await fetch(`/api/comments/${commentId}/like`, {
+      method: 'POST',
+    });
+    if (!response.ok) throw new Error('Failed to toggle like');
+    return response.json();
+  } catch (error) {
+    console.error('Error toggling comment like:', error);
+    throw error;
+  }
+};
+
+export const updateProfile = async (profileData: {
+  firstName: string;
+  lastName?: string;
+  bio: string;
+  website?: string;
+  city: string;
+  country: string;
+  profilePhoto?: string;
+}) => {
+  try {
+    const response = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update profile');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+};
+
+export const searchBlogs = async (params: {
+  q?: string;
+  category?: string;
+  tag?: string;
+  page?: number;
+  limit?: number;
+  sort?: string;
+}) => {
+  try {
+    const searchParams = new URLSearchParams();
+    if (params.q) searchParams.set('q', params.q);
+    if (params.category) searchParams.set('category', params.category);
+    if (params.tag) searchParams.set('tag', params.tag);
+    if (params.page) searchParams.set('page', String(params.page));
+    if (params.limit) searchParams.set('limit', String(params.limit));
+    if (params.sort) searchParams.set('sort', params.sort);
+
+    const response = await fetch(`/api/search?${searchParams.toString()}`);
+    if (!response.ok) throw new Error('Failed to search blogs');
+    return response.json();
+  } catch (error) {
+    console.error('Error searching blogs:', error);
+    throw error;
   }
 };

@@ -2,14 +2,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
 import { getUserByClerkID } from '@/utils/auth';
+import { sanitizeHtml } from '@/utils/sanitize';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const { title, content, description, published, imageUrl } = await req.json();
+
   try {
+    const user = await getUserByClerkID();
+
+    // Authorization: only the author can edit
+    const blog = await prisma.blog.findUnique({ where: { id }, select: { authorId: true } });
+    if (!blog) {
+      return NextResponse.json({ message: 'Blog not found' }, { status: 404 });
+    }
+    if (blog.authorId !== user.id) {
+      return NextResponse.json({ message: 'Unauthorized: You can only edit your own blogs' }, { status: 403 });
+    }
+
+    // Sanitize HTML content before saving
+    const sanitizedContent = content ? sanitizeHtml(content) : content;
+
     const updatedBlog = await prisma.blog.update({
       where: { id },
-      data: { title, description, content, published, imageUrl },
+      data: { title, description, content: sanitizedContent, published, imageUrl },
     });
     return NextResponse.json(updatedBlog);
   } catch (error) {
@@ -24,18 +40,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const blog = await prisma.blog.findUnique({
       where: { id },
       include: {
-        author: { select: { firstName: true, lastName: true, profilePhoto: true } },
+        author: { select: { firstName: true, lastName: true, profilePhoto: true, username: true } },
         comments: {
           where: { parentId: null },
           include: {
-            author: { select: { firstName: true, lastName: true, profilePhoto: true } },
-            replies: {
-              include: {
-                author: { select: { firstName: true, lastName: true, profilePhoto: true } },
-              },
-            },
+            author: { select: { id: true, firstName: true, lastName: true, profilePhoto: true, username: true } },
+            _count: { select: { replies: true, likes: true } },
           },
+          orderBy: { createdAt: 'desc' },
         },
+        tags: true,
+        categories: true,
       },
     });
 
@@ -55,19 +70,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   try {
     const user = await getUserByClerkID();
 
-    if (type === 'upvote' || type === 'downvote') {
-      const updateData = type === 'upvote' ? { upVotes: { increment: 1 } } : { downVotes: { increment: 1 } };
-      const blog = await prisma.blog.update({ where: { id }, data: updateData });
-      return NextResponse.json({ message: 'Vote recorded successfully', blog });
-    }
-
     if (type === 'comment') {
+      // Sanitize comment content
+      const sanitizedContent = sanitizeHtml(content);
+
       const comment = await prisma.comment.create({
         data: {
-          content,
+          content: sanitizedContent,
           authorId: user.id,
           blogId: id,
           parentId: parentId || null,
+        },
+        include: {
+          author: { select: { id: true, firstName: true, lastName: true, profilePhoto: true, username: true } },
         },
       });
 
@@ -93,13 +108,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
               userId: blog.authorId,
               blogId: id,
               type: 'comment',
-              message: `${user.firstName} commented on your blog.`,
+              message: `${user.firstName} commented on your blog "${blog.title}".`,
             },
           });
         }
       }
 
-      return NextResponse.json({ message: 'Comment added successfully', comment });
+      return NextResponse.json({ message: 'Comment added successfully', comment, reply: comment });
     }
 
     return NextResponse.json({ message: 'Invalid request type' }, { status: 400 });
@@ -112,15 +127,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
+    const user = await getUserByClerkID();
 
-    await prisma.view.deleteMany({ where: { blogId: id } });
-    await prisma.vote.deleteMany({ where: { blogId: id } });
-    await prisma.comment.deleteMany({ where: { blogId: id } });
+    // Authorization: only the author can delete
+    const blog = await prisma.blog.findUnique({ where: { id }, select: { authorId: true } });
+    if (!blog) {
+      return NextResponse.json({ message: 'Blog not found' }, { status: 404 });
+    }
+    if (blog.authorId !== user.id) {
+      return NextResponse.json({ message: 'Unauthorized: You can only delete your own blogs' }, { status: 403 });
+    }
+
+    // With cascade deletes in schema, we only need to delete the blog
+    // Related views, votes, comments, notifications, bookmarks, readingHistory will cascade
     await prisma.blog.delete({ where: { id } });
 
-    return NextResponse.json({ message: "Blog deleted successfully", status: 200 });
+    return NextResponse.json({ message: "Blog deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting blog:", error);
-    return NextResponse.json({ error: "Failed to delete blog entry", status: 500 });
+    return NextResponse.json({ error: "Failed to delete blog entry" }, { status: 500 });
   }
 }
