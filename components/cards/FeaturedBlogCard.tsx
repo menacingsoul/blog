@@ -2,70 +2,46 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Clock, Eye, ChevronRight } from 'lucide-react';
-import FeaturedBlogCardSkeleton from '../FeaturedBlogCardSkeleton';
+import { useState } from 'react';
+import { Clock, Eye, ChevronRight, BookOpen } from 'lucide-react';
+import { estimateReadingTime } from '@/utils/readingTime';
+import type { BlogCard } from '@/types';
 
-interface View {
-  id: string;
-  blog: Blog;
-}
-
-interface Blog {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Date;
-  views: View;
-  author: {
-    profilePhoto: string;
-    firstName: string;
-    lastName: string;
-  };
-}
-
-const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
+const FeaturedBlogCard: React.FC<{ blog: BlogCard }> = ({ blog }) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) return <FeaturedBlogCardSkeleton />;
 
   const handleClick = async () => {
     try {
-      await fetch(`/api/views/${blog.id}`, {
-        method: 'POST',
-      });
+      await fetch(`/api/views/${blog.id}`, { method: 'POST' });
       router.push(`/blog/viewer/${blog.id}`);
     } catch (error) {
       console.error('Failed to record view:', error);
+      router.push(`/blog/viewer/${blog.id}`);
     }
   };
 
-  const creationDate = new Date(blog.createdAt).toLocaleDateString('en-US', {
+  const creationDate = new Date(blog.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: 'Asia/Kolkata',
   });
+
+  const readingTime = blog.content ? estimateReadingTime(blog.content) : null;
+  const viewCount = Array.isArray(blog.views) ? blog.views.length : 0;
+  const authorPhoto = blog.author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
 
   return (
     <div 
-      className="bg-gradient-to-br from-purple-600/20 to-indigo-600/20 border border-purple-500/30 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col md:flex-row"
+      className="bg-gradient-to-br from-purple-600/20 to-indigo-600/20 border border-purple-500/30 rounded-xl overflow-hidden shadow-lg hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer flex flex-col md:flex-row group"
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Left side content for featured blog */}
       <div className="p-6 md:p-8 flex-1">
         <div className="flex items-center gap-3 mb-4">
           <Image
-            src={blog.author.profilePhoto}
+            src={authorPhoto}
             alt={`${blog.author.firstName}'s profile`}
             width={48}
             height={48}
@@ -75,36 +51,42 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
             <h3 className="text-white text-sm font-medium">
               {blog.author.firstName} {blog.author.lastName}
             </h3>
-            <div className="flex items-center text-zinc-400 text-xs">
-              <Clock size={12} className="mr-1" />
-              <span>{creationDate}</span>
+            <div className="flex items-center text-zinc-400 text-xs gap-2">
+              <span className="flex items-center gap-1">
+                <Clock size={12} />
+                {creationDate}
+              </span>
             </div>
           </div>
           
-          <div className="ml-auto flex items-center text-zinc-400 text-xs">
-            <Eye size={14} className="mr-1" />
-            <span>{blog.views ? (Array.isArray(blog.views) ? blog.views.length : 1) : 0}</span>
+          <div className="ml-auto flex items-center gap-3 text-zinc-400 text-xs">
+            {readingTime && (
+              <span className="flex items-center gap-1">
+                <BookOpen size={12} />
+                {readingTime} min read
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <Eye size={14} />
+              {viewCount}
+            </span>
           </div>
         </div>
         
-        {/* Featured badge */}
         <div className="mb-3">
           <span className="bg-indigo-600/30 text-indigo-300 text-xs px-3 py-1 rounded-full font-medium">
             Featured
           </span>
         </div>
         
-        {/* Blog title - larger for featured */}
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 line-clamp-3 group-hover:text-indigo-300 transition-colors">
           {blog.title}
         </h2>
         
-        {/* Blog description - more space for featured */}
         <p className="text-zinc-300 text-sm md:text-base mb-6 line-clamp-4 md:line-clamp-5">
           {blog.description}
         </p>
         
-        {/* Read more button with animation */}
         <div className="flex justify-end">
           <button 
             className={`text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center transition-all duration-300 ${
@@ -117,7 +99,6 @@ const FeaturedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
         </div>
       </div>
       
-      {/* Right side with decorative gradient for featured blogs */}
       <div className="hidden md:block w-1/3 bg-gradient-to-br from-indigo-800/20 to-purple-700/20 relative">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-24 h-24 rounded-full bg-indigo-500/20 backdrop-blur-sm flex items-center justify-center">

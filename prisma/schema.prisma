@@ -25,18 +25,20 @@ model User {
   registered   Boolean  @default(false)
   city         String
   country      String
-  profilePhoto String?  @default("https://eu.ui-avatars.com/api/?name=John+Doe&color=7F9CF5&background=EBF4FF") // Default photo URL
+  profilePhoto String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  posts       Blog[]
-  comments    Comment[]
-  votes       Vote[]
-  views       View[]
+  posts          Blog[]
+  comments       Comment[]
+  votes          Vote[]
+  views          View[]
   readingHistory ReadingHistory[]
+  bookmarks      Bookmark[]
+  commentLikes   CommentLike[]
 
-  following User[] @relation("Follows")
-  followers User[] @relation("Follows")
+  following     User[] @relation("Follows")
+  followers     User[] @relation("Follows")
   notifications Notification[]
 }
 
@@ -59,7 +61,8 @@ model Blog {
   votes       Vote[]
   views       View[]
   readingHistory ReadingHistory[]
-  notifications Notification[]
+  bookmarks      Bookmark[]
+  notifications  Notification[]
 }
 
 model Comment {
@@ -71,26 +74,49 @@ model Comment {
   parentId  String?   // for replies
 
   author    User      @relation(fields: [authorId], references: [id])
-  blog      Blog      @relation(fields: [blogId], references: [id])
-  parent    Comment?  @relation("ReplyTo", fields: [parentId], references: [id])
+  blog      Blog      @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("ReplyTo", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Comment[] @relation("ReplyTo")
+  likes     CommentLike[]
 
   notifications Notification[]
 }
 
+model CommentLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String
+
+  @@unique([userId, commentId])
+}
+
 model Notification {
   id        String   @id @default(cuid())
-  type      String   // 'reply' or 'comment'
+  type      String   // 'reply', 'comment', 'follow', 'like'
   userId    String   // who receives it
   commentId String?
   blogId    String?
   createdAt DateTime @default(now())
+  read      Boolean  @default(false)
   message   String
   user      User     @relation(fields: [userId], references: [id])
-  comment   Comment? @relation(fields: [commentId], references: [id])
-  blog      Blog?    @relation(fields: [blogId], references: [id])
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  blog      Blog?    @relation(fields: [blogId], references: [id], onDelete: Cascade)
 }
 
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId    String
+
+  @@unique([userId, blogId])
+}
 
 model Vote {
   id        String   @id @default(cuid())
@@ -98,7 +124,7 @@ model Vote {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   userId    String
-  blog      Blog?    @relation(fields: [blogId], references: [id])
+  blog      Blog?    @relation(fields: [blogId], references: [id], onDelete: Cascade)
   blogId    String?
   @@unique([userId, blogId]) 
 }
@@ -108,7 +134,7 @@ model View {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   userId    String
-  blog      Blog     @relation(fields: [blogId], references: [id])
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
   blogId    String
 
   @@unique([userId, blogId]) 
@@ -131,8 +157,8 @@ model ReadingHistory {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   userId    String
-  blog      Blog     @relation(fields: [blogId], references: [id])
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
   blogId    String
 
-  @@unique([userId, blogId]) // Ensure unique reading history entries per user per blog
+  @@unique([userId, blogId])
 }

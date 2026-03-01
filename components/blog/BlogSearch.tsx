@@ -2,42 +2,51 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, X } from 'lucide-react';
 
 const BlogsSearch = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [searchBy, setSearchBy] = useState('name'); // Default search by name
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (searchQuery) params.set('search', searchQuery);
-    if (searchBy === 'date') params.set('date', new Date().toISOString()); // Placeholder for date search logic
+    if (searchQuery.trim()) params.set('search', searchQuery.trim());
     router.push(`/blog/blogs?${params.toString()}`);
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+    router.push('/blog/blogs');
+  };
+
   return (
-    <div className='flex items-center w-full space-x-1 mb-2'>
-      <div className="relative w-full">
+    <div className="max-w-2xl mx-auto mb-8">
+      <div className="relative flex items-center">
+        <SearchIcon className="absolute left-4 text-gray-400" size={18} />
         <input
-          type={`${searchBy === 'name' ? 'text' : 'date'}`}
-          placeholder={`Search blogs... ${searchBy === 'name' ? '' : 'date'}`}
-          className="w-full h-12 p-2 pl-10 text-lg bg-gray-600/50 bg-opacity-80 rounded-2xl placeholder-gray-300 text-white"
+          type="text"
+          placeholder="Search blogs by title, content, or description..."
+          className="w-full py-3 px-5 pl-12 pr-24 rounded-full bg-gray-800/70 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm transition-all placeholder-gray-400"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={handleSearch}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         />
-        <div className="absolute inset-y-0 left-3 flex items-center text-white">
-          <SearchIcon />
-        </div>
+        {searchQuery && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-24 text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={16} />
+          </button>
+        )}
+        <button
+          onClick={handleSearch}
+          className="absolute right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-1.5 rounded-full text-sm font-medium hover:opacity-90 transition"
+        >
+          Search
+        </button>
       </div>
-      <div className="relative">
-       
-      </div>
-      <button onClick={handleSearch} className="p-2 h-12 bg-indigo-600 z-50 text-white rounded-2xl">
-        Search
-      </button>
     </div>
   );
 };

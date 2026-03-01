@@ -5,7 +5,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from 'next/navigation';
 import { prisma } from '@/utils/db';
 
-// Font import
 const raleway = Raleway({
   weight: ['400', '600', '700', '800'],
   subsets: ['latin'],
@@ -81,6 +80,11 @@ export default async function Home() {
                   Start Blogging
                 </button>
               </Link>
+              <Link href="/sign-in">
+                <button className="border border-white/20 hover:border-white/40 text-white/80 hover:text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300">
+                  Sign In
+                </button>
+              </Link>
             </div>
             
             {/* Stats */}
@@ -100,9 +104,9 @@ export default async function Home() {
             </div>
           </div>
           
-          {/* Right side - floating cards */}
-          <div className="relative h-80 w-80 md:h-96 md:w-96 hidden md:block">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform rotate-6 hover:rotate-3 transition-all duration-300">
+          {/* Right side - floating cards (visible on larger screens, simplified on mobile) */}
+          <div className="relative h-64 w-64 md:h-96 md:w-96">
+            <div className="absolute top-0 left-0 w-52 h-52 md:w-64 md:h-64 bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform rotate-6 hover:rotate-3 transition-all duration-300">
               <div className="p-6">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/50 mb-4"></div>
                 <div className="h-4 w-3/4 bg-white/20 rounded-lg mb-2"></div>
@@ -111,7 +115,7 @@ export default async function Home() {
               </div>
             </div>
             
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-br from-fuchsia-500/20 to-indigo-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform -rotate-6 hover:-rotate-3 transition-all duration-300">
+            <div className="absolute bottom-0 right-0 w-52 h-52 md:w-64 md:h-64 bg-gradient-to-br from-fuchsia-500/20 to-indigo-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform -rotate-6 hover:-rotate-3 transition-all duration-300">
               <div className="p-6">
                 <div className="w-10 h-10 rounded-full bg-fuchsia-500/50 mb-4"></div>
                 <div className="h-4 w-3/4 bg-white/20 rounded-lg mb-2"></div>

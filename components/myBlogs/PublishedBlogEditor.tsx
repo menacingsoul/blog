@@ -286,7 +286,7 @@ const PublishedBlogEditor: React.FC<BlogEditorProps> = ({
 
               <div
                 className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-700 rounded-lg bg-gray-800/50 cursor-pointer hover:border-purple-500 transition-colors group"
-                onClick={() => document.getElementById("fileInput").click()}
+                onClick={() => document.getElementById("fileInput")?.click()}
               >
                 <UploadCloud className="w-12 h-12 text-gray-400 group-hover:text-purple-400 transition-colors mb-2" />
                 <p className="text-gray-400">

@@ -1,57 +1,40 @@
-// components/BlogCard.tsx
 'use client'
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import BlogCardSkeleton from '../BlogCardSkeleton';
-interface Blog {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Date;
-  author: {
-    profilePhoto: string;
-    firstName: string;
-    lastName: string;
-  };
-}
+import { Clock, CheckCircle } from 'lucide-react';
+import type { BlogCard } from '@/types';
 
-const PublishedBlogCard: React.FC<{ blog: Blog }> = ({ blog }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
-    return () => clearTimeout(timer);
-  }, []);
-  const creationDate = new Date(blog.createdAt).toLocaleDateString('en-US', {
+const PublishedBlogCard: React.FC<{ blog: BlogCard }> = ({ blog }) => {
+  const creationDate = new Date(blog.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: 'Asia/Kolkata',
   });
 
-  if (isLoading) return <BlogCardSkeleton />;
+  const authorPhoto = blog.author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
+
   return (
-    <Link href={`/myblogs/viewer/${blog.id}`} className=" max-w-full h-56 rounded-xl overflow-hidden shadow-lg 
-  bg-gradient-to-br from-white/20 to-white/30 backdrop-filter backdrop-blur-lg
-  border border-white/30 hover:border-white/50
-  hover:shadow-2xl transition-all duration-300 transform ">
-      <div className="relative overflow-hidden rounded-lg">
-      </div>
-      <div className="p-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-2 text-white">{blog.title}</h2>
-        <div className='flex mb-1 bg-yellow-50 font-semibold px-1 py-1 rounded-2xl w-fit items-center gap-1'>
-        <Image
-        alt="author image"
-        src={blog.author.profilePhoto}
-        height={30}
-        width={30}
-        className=" rounded-full"
-        />
-        <p className="text-gray-900 text-xs  ">{blog.author.firstName} {blog.author.lastName}</p>
+    <Link href={`/myblogs/viewer/${blog.id}`} className="block rounded-xl overflow-hidden shadow-lg 
+      bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 
+      hover:border-green-500/40 hover:shadow-xl hover:shadow-green-500/5 transition-all duration-300">
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="bg-green-500/20 text-green-300 text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
+            <CheckCircle size={12} />
+            Published
+          </span>
         </div>
-        <p className=" text-red-100 text-xs mb-2">{creationDate}</p>
-        <p className="text-gray-300 line-clamp-2 ">{blog.description}</p>
+        <h2 className="text-xl font-semibold mb-3 text-white line-clamp-2">{blog.title}</h2>
+        <div className="flex items-center gap-2 mb-2">
+          <Image alt="Author" src={authorPhoto} height={28} width={28} className="rounded-full border border-zinc-700" />
+          <p className="text-zinc-400 text-sm">{blog.author.firstName} {blog.author.lastName}</p>
+        </div>
+        <p className="text-zinc-500 text-xs flex items-center gap-1 mb-2">
+          <Clock size={12} />
+          {creationDate}
+        </p>
+        <p className="text-zinc-400 text-sm line-clamp-2">{blog.description}</p>
       </div>
     </Link>
   );

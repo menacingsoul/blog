@@ -9,20 +9,7 @@ import {
   Loader2, BookmarkPlus, MessageSquare, Calendar, Users, 
   Heart
 } from 'lucide-react';
-
-interface Author {
-  profilePhoto: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface Comment {
-  id: string;
-  author: Author;
-  content: string;
-  createdAt?: Date;
-}
+import type { BlogAuthor, CommentView } from '@/types';
 
 interface BlogViewerProps {
   blogId: string;
@@ -30,9 +17,9 @@ interface BlogViewerProps {
   content: string;
   upVotes: number;
   downVotes: number;
-  author: Author;
+  author: BlogAuthor;
   imageUrl: string;
-  initialComments: Comment[];
+  initialComments: CommentView[];
   viewCount: number;
 }
 
@@ -245,7 +232,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
                   {/* Author info */}
                   <div className="flex items-center gap-3 mb-4 sm:mb-0">
                     <Image
-                      src={author.profilePhoto}
+                      src={author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${author.firstName}+${author.lastName || ''}&color=7F9CF5&background=EBF4FF`}
                       height={48}
                       width={48}
                       alt={`${author.firstName} ${author.lastName}`}

@@ -1,6 +1,6 @@
 import React from 'react'
 
-const UsersCard=(user)=> {
+const UsersCard = (user: any) => {
   return (
     <div>UsersCard</div>
   )

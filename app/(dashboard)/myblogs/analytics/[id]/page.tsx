@@ -44,7 +44,7 @@ const AnalyticsPage = async ({ params }: { params: { id: string } }) => {
   }
 
   // Prepare data for the Analysis component
-  const viewCountsByDate = blog.views.reduce((acc, view) => {
+  const viewCountsByDate = blog.views.reduce((acc: Record<string, number>, view: any) => {
     const date = view.createdAt.toISOString().split('T')[0];
     if (acc[date]) {
       acc[date]++;
@@ -54,12 +54,12 @@ const AnalyticsPage = async ({ params }: { params: { id: string } }) => {
     return acc;
   }, {});
 
-  const viewDate = Object.keys(viewCountsByDate);
-  const viewCount = Object.values(viewCountsByDate);
+  const viewDate: string[] = Object.keys(viewCountsByDate);
+  const viewCount: number[] = Object.values(viewCountsByDate);
 
-  const comments = blog.comments.map(comment => comment.id).length;
+  const comments: number = blog.comments.length;
 
-  const viewerCountry = blog.views.reduce((acc, view) => {
+  const viewerCountry = blog.views.reduce((acc: Record<string, number>, view: any) => {
     const country = view.user.country;
     if (acc[country]) {
       acc[country]++;

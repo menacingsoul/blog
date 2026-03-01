@@ -1,14 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    
-        images: {
-          domains: ['img.clerk.com','i.pravatar.cc','img.freepik.com','res.cloudinary.com','images.pexels.com'], // Add any other domains you need here
-        },
-        typescript:{
-          ignoreBuildErrors:true,
-        }
-      
+    images: {
+      remotePatterns: [
+        { protocol: 'https', hostname: 'img.clerk.com' },
+        { protocol: 'https', hostname: 'i.pravatar.cc' },
+        { protocol: 'https', hostname: 'img.freepik.com' },
+        { protocol: 'https', hostname: 'res.cloudinary.com' },
+        { protocol: 'https', hostname: 'images.pexels.com' },
+        { protocol: 'https', hostname: 'eu.ui-avatars.com' },
+      ],
+    },
 };
 
 export default nextConfig;
-

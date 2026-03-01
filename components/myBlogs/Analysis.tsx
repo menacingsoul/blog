@@ -38,7 +38,7 @@ interface AnalysisProps {
   downVotes: number;
 }
 
-const Analysis = ({
+const Analysis: React.FC<AnalysisProps> = ({
   title = "Video Analytics",
   viewCount = [],
   viewerCountry = {},
@@ -143,7 +143,7 @@ const Analysis = ({
             size: 12
           }
         },
-        position: 'top',
+        position: 'top' as const,
       },
       tooltip: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -166,7 +166,7 @@ const Analysis = ({
             size: 12
           }
         },
-        position: 'bottom',
+        position: 'bottom' as const,
       },
       tooltip: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',

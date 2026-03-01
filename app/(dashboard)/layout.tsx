@@ -9,7 +9,7 @@ const DashboardLayout = ({ children }: Props) => {
   return (
     <div className="w-screen flex flex-col md:flex-row">
       <SidebarToggle />
-      <div className="md:ml-[230px] flex-1 h-full overflow-auto">
+      <div className="md:ml-[230px] flex-1 h-full overflow-auto pb-16 md:pb-0">
         {children}
       </div>
     </div>
