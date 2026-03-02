@@ -2,19 +2,22 @@
 "use client";
 import React, { useState, useRef } from "react";
 import Image from "next/image";
-import { addComment, addReply, toggleCommentLike } from "@/utils/api";
+import { addComment, addReply, toggleCommentLike, deleteComment } from "@/utils/api";
 import {
   MessageSquare, AlertCircle, Send, Reply, ChevronDown,
-  ChevronUp, Clock, Heart, Loader2,
+  ChevronUp, Clock, Heart, Loader2, Trash2,
 } from "lucide-react";
 import type { CommentView, ReplyView } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface CommentsProps {
   blogId: string;
   initialComments: CommentView[];
+  currentUserId?: string;
+  blogAuthorId?: string;
 }
 
-const Comments: React.FC<CommentsProps> = ({ blogId, initialComments }) => {
+const Comments: React.FC<CommentsProps> = ({ blogId, initialComments, currentUserId, blogAuthorId }) => {
   const [comments, setComments] = useState<CommentView[]>(initialComments);
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -28,8 +31,48 @@ const Comments: React.FC<CommentsProps> = ({ blogId, initialComments }) => {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [deletingComment, setDeletingComment] = useState<string | null>(null);
 
   const commentSectionRef = useRef<HTMLDivElement>(null);
+
+  const canDeleteComment = (commentAuthorId?: string) => {
+    if (!currentUserId) return false;
+    // Comment author can delete their own comment
+    if (commentAuthorId && commentAuthorId === currentUserId) return true;
+    // Blog post author can delete any comment
+    if (blogAuthorId && blogAuthorId === currentUserId) return true;
+    return false;
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    setDeletingComment(commentId);
+    try {
+      await deleteComment(commentId);
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } catch {
+      // silently fail
+    } finally {
+      setDeletingComment(null);
+    }
+  };
+
+  const handleDeleteReply = async (commentId: string, replyId: string) => {
+    setDeletingComment(replyId);
+    try {
+      await deleteComment(replyId);
+      setLoadedReplies(prev => ({
+        ...prev,
+        [commentId]: (prev[commentId] || []).filter(r => r.id !== replyId),
+      }));
+      setComments(prev => prev.map(c =>
+        c.id === commentId ? { ...c, repliesCount: Math.max(0, (c.repliesCount || 1) - 1) } : c
+      ));
+    } catch {
+      // silently fail
+    } finally {
+      setDeletingComment(null);
+    }
+  };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) { setCommentError("Comment cannot be empty"); return; }
@@ -99,73 +142,95 @@ const Comments: React.FC<CommentsProps> = ({ blogId, initialComments }) => {
   const totalCommentCount = comments.reduce((t, c) => t + 1 + getReplyCount(c), 0);
 
   return (
-    <div ref={commentSectionRef} className="bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-xl shadow-xl h-full sticky top-4">
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-          <MessageSquare size={20} /> Comments
-          <span className="text-sm font-normal text-gray-400 ml-2">({totalCommentCount})</span>
+    <div ref={commentSectionRef}>
+      <div>
+        <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+          <MessageSquare size={20} className="text-primary" /> Comments
+          <span className="text-sm font-normal text-muted-foreground ml-1">({totalCommentCount})</span>
         </h2>
 
         {/* Comment Form */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="relative">
             <textarea value={newComment} onChange={e => { setNewComment(e.target.value); if (commentError) setCommentError(""); }}
-              className="w-full p-3 pl-4 pr-12 bg-gray-800/80 text-white rounded-lg border border-gray-700 resize-none focus:outline-none focus:ring-1 focus:ring-purple-500 transition-colors"
+              className="w-full p-3.5 pl-4 pr-12 bg-muted/30 dark:bg-muted/20 text-foreground rounded-xl border border-border resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground"
               placeholder="Share your thoughts..." rows={3}
               onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleAddComment(); }} />
             <button onClick={handleAddComment} disabled={isCommenting || !newComment.trim()}
-              className={`absolute right-3 bottom-3 p-2 rounded-full ${isCommenting || !newComment.trim() ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700 text-white"} transition-colors`}>
+              className={cn(
+                "absolute right-3 bottom-3 p-2 rounded-full transition-all",
+                isCommenting || !newComment.trim()
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
+                  : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20"
+              )}>
               {isCommenting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             </button>
           </div>
-          <p className="text-gray-500 text-xs mt-1">Ctrl+Enter to submit</p>
-          {commentError && <div className="mt-1 text-red-400 text-sm flex items-center gap-1"><AlertCircle size={14} />{commentError}</div>}
+          <p className="text-muted-foreground text-xs mt-1.5">Ctrl+Enter to submit</p>
+          {commentError && <div className="mt-1 text-destructive text-sm flex items-center gap-1"><AlertCircle size={14} />{commentError}</div>}
         </div>
 
         {/* Comments List */}
         {comments.length > 0 ? (
-          <div className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-rounded-comment">
+          <div className="space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-comment">
             {comments.map(comment => {
               const replyCount = getReplyCount(comment);
               const likeCount = getLikeCount(comment);
               const isLiked = likedComments.has(comment.id);
               const authorPhoto = comment.author?.profilePhoto || "/logo.svg";
+              const showDelete = canDeleteComment(comment.author?.id);
+              const isDeleting = deletingComment === comment.id;
 
               return (
-                <div key={comment.id} className="bg-gray-800/50 rounded-lg border border-gray-700/50 overflow-hidden">
+                <div key={comment.id} className={cn(
+                  "bg-muted/20 dark:bg-muted/10 rounded-xl border border-border/50 overflow-hidden hover:border-border transition-colors",
+                  isDeleting && "opacity-50 pointer-events-none"
+                )}>
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <Image src={authorPhoto} height={36} width={36} className="rounded-full flex-shrink-0"
+                      <Image src={authorPhoto} height={36} width={36} className="rounded-full flex-shrink-0 ring-1 ring-border"
                         alt={comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : "Anonymous"} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <div>
-                            <div className="text-white font-medium text-sm">
+                            <div className="text-foreground font-medium text-sm">
                               {comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : "Anonymous"}
                             </div>
-                            <div className="text-gray-400 text-xs flex items-center gap-2">
+                            <div className="text-muted-foreground text-xs flex items-center gap-2">
                               <span>@{comment.author?.username || "anonymous"}</span>
-                              <span className="inline-block w-1 h-1 bg-gray-500 rounded-full"></span>
-                              <span className="flex items-center gap-1"><Clock size={12} />{formatTimeAgo(comment.createdAt)}</span>
+                              <span className="inline-block w-1 h-1 bg-muted-foreground/50 rounded-full"></span>
+                              <span className="flex items-center gap-1"><Clock size={11} />{formatTimeAgo(comment.createdAt)}</span>
                             </div>
                           </div>
+                          {showDelete && (
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              disabled={isDeleting}
+                              className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                              title="Delete comment"
+                            >
+                              {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                            </button>
+                          )}
                         </div>
-                        <p className="text-gray-300 mt-2 text-sm leading-relaxed">{comment.content}</p>
+                        <p className="text-foreground/80 mt-2 text-sm leading-relaxed">{comment.content}</p>
 
                         {/* Comment actions */}
                         <div className="mt-3 flex items-center gap-4">
                           <button onClick={() => handleLikeComment(comment.id)}
-                            className={`text-xs flex items-center gap-1 transition-colors ${isLiked ? "text-red-400" : "text-gray-400 hover:text-red-400"}`}>
+                            className={cn("text-xs flex items-center gap-1 transition-colors",
+                              isLiked ? "text-rose-500" : "text-muted-foreground hover:text-rose-500")}>
                             <Heart size={14} fill={isLiked ? "currentColor" : "none"} />
                             <span>{likeCount > 0 ? likeCount : "Like"}</span>
                           </button>
                           <button onClick={() => toggleReplying(comment.id)}
-                            className={`text-xs flex items-center gap-1 ${replyingTo === comment.id ? "text-purple-400" : "text-gray-400 hover:text-purple-400"} transition-colors`}>
+                            className={cn("text-xs flex items-center gap-1 transition-colors",
+                              replyingTo === comment.id ? "text-primary" : "text-muted-foreground hover:text-primary")}>
                             <Reply size={14} /><span>{replyingTo === comment.id ? "Cancel" : "Reply"}</span>
                           </button>
                           {replyCount > 0 && (
                             <button onClick={() => handleShowReplies(comment.id)}
-                              className="text-gray-400 hover:text-purple-400 transition-colors text-xs flex items-center gap-1">
+                              className="text-muted-foreground hover:text-primary transition-colors text-xs flex items-center gap-1">
                               {expandedComments.has(comment.id) ? <><ChevronUp size={14} /><span>Hide replies</span></> : <><ChevronDown size={14} /><span>{replyCount} {replyCount === 1 ? "reply" : "replies"}</span></>}
                               {loadingReplies[comment.id] && <Loader2 size={14} className="animate-spin ml-1" />}
                             </button>
@@ -179,37 +244,54 @@ const Comments: React.FC<CommentsProps> = ({ blogId, initialComments }) => {
                       <div className="mt-4 ml-10 relative">
                         <textarea value={replyContent[comment.id] || ""}
                           onChange={e => { setReplyContent(prev => ({ ...prev, [comment.id]: e.target.value })); if (replyError) setReplyError(""); }}
-                          className="w-full p-3 pl-4 pr-12 bg-gray-800 text-white rounded-lg border border-gray-700 resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          className="w-full p-3 pl-4 pr-12 bg-muted/30 dark:bg-muted/20 text-foreground rounded-lg border border-border resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground"
                           placeholder="Write a reply..." rows={2}
                           onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleAddReply(comment.id); }} />
                         <button onClick={() => handleAddReply(comment.id)}
                           disabled={isReplying || !(replyContent[comment.id] || "").trim()}
-                          className={`absolute right-3 bottom-3 p-2 rounded-full ${isReplying ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700 text-white"} transition-colors`}>
-                          {isReplying ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                          className={cn(
+                            "absolute right-3 bottom-3 p-2 rounded-full transition-all",
+                            isReplying ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                          )}>
+                          {isReplying ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                         </button>
-                        {replyError && <div className="mt-1 text-red-400 text-sm flex items-center gap-1"><AlertCircle size={14} />{replyError}</div>}
+                        {replyError && <div className="mt-1 text-destructive text-sm flex items-center gap-1"><AlertCircle size={14} />{replyError}</div>}
                       </div>
                     )}
                   </div>
 
                   {/* Replies section */}
                   {expandedComments.has(comment.id) && loadedReplies[comment.id] && (
-                    <div className="border-t border-gray-700/50 bg-gray-800/30">
-                      <div className="ml-6 space-y-0 divide-y divide-gray-700/30">
+                    <div className="border-t border-border/50 bg-muted/10">
+                      <div className="ml-6 space-y-0 divide-y divide-border/30">
                         {loadedReplies[comment.id].map(reply => {
                           const replyPhoto = reply.author?.profilePhoto || "/logo.svg";
+                          const showReplyDelete = canDeleteComment(reply.author?.id);
+                          const isReplyDeleting = deletingComment === reply.id;
                           return (
-                            <div key={reply.id} className="p-4 pl-6">
+                            <div key={reply.id} className={cn("p-4 pl-6", isReplyDeleting && "opacity-50 pointer-events-none")}>
                               <div className="flex items-start gap-3">
-                                <Image src={replyPhoto} height={28} width={28} className="rounded-full flex-shrink-0"
+                                <Image src={replyPhoto} height={28} width={28} className="rounded-full flex-shrink-0 ring-1 ring-border"
                                   alt={reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : "Anonymous"} />
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-white font-medium text-sm">{reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : "Anonymous"}</span>
-                                    <span className="text-gray-500 text-xs">@{reply.author?.username || "anonymous"}</span>
-                                    <span className="text-gray-500 text-xs flex items-center gap-1"><Clock size={10} />{formatTimeAgo(reply.createdAt)}</span>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-foreground font-medium text-sm">{reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : "Anonymous"}</span>
+                                      <span className="text-muted-foreground text-xs">@{reply.author?.username || "anonymous"}</span>
+                                      <span className="text-muted-foreground text-xs flex items-center gap-1"><Clock size={10} />{formatTimeAgo(reply.createdAt)}</span>
+                                    </div>
+                                    {showReplyDelete && (
+                                      <button
+                                        onClick={() => handleDeleteReply(comment.id, reply.id)}
+                                        disabled={isReplyDeleting}
+                                        className="p-1 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                                        title="Delete reply"
+                                      >
+                                        {isReplyDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                                      </button>
+                                    )}
                                   </div>
-                                  <p className="text-gray-300 text-sm mt-1 leading-relaxed">{reply.content}</p>
+                                  <p className="text-foreground/80 text-sm mt-1 leading-relaxed">{reply.content}</p>
                                 </div>
                               </div>
                             </div>
@@ -223,7 +305,7 @@ const Comments: React.FC<CommentsProps> = ({ blogId, initialComments }) => {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-muted-foreground">
             <MessageSquare size={40} className="mx-auto mb-3 opacity-30" />
             <p>No comments yet. Be the first to comment!</p>
           </div>

@@ -13,11 +13,7 @@ const myBlogPage = async () => {
     where: { authorId: id, published: true },
     include: {
       author: {
-        select: {
-          firstName: true,
-          lastName: true,
-          profilePhoto: true,
-        },
+        select: { firstName: true, lastName: true, profilePhoto: true },
       },
     },
     orderBy: { updatedAt: 'desc' },
@@ -27,25 +23,21 @@ const myBlogPage = async () => {
     where: { authorId: id, published: false },
     include: {
       author: {
-        select: {
-          firstName: true,
-          lastName: true,
-          profilePhoto: true,
-        },
+        select: { firstName: true, lastName: true, profilePhoto: true },
       },
     },
     orderBy: { updatedAt: 'desc' },
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-8 px-4 sm:px-6 lg:px-8 pb-20 md:pb-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto">
         {/* Published Blogs */}
         <div className="mb-12">
-          <h2 className="text-white font-bold text-2xl flex items-center gap-2 mb-6">
-            <FileText size={24} className="text-green-400" />
+          <h2 className="text-foreground font-bold text-2xl flex items-center gap-2 mb-6">
+            <FileText size={24} className="text-emerald-500" />
             Published Blogs
-            <span className="text-sm font-normal text-gray-400">({publishedBlogs.length})</span>
+            <span className="text-sm font-normal text-muted-foreground">({publishedBlogs.length})</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {publishedBlogs.length > 0 ? (
@@ -53,7 +45,7 @@ const myBlogPage = async () => {
                 <PublishedBlogCard key={blog.id} blog={blog} />
               ))
             ) : (
-              <div className="col-span-full text-gray-400 bg-gray-800/30 rounded-xl p-8 text-center border border-gray-700/30">
+              <div className="col-span-full text-muted-foreground glass-card rounded-xl p-8 text-center">
                 <FileText size={40} className="mx-auto mb-3 opacity-30" />
                 <p>No published blogs yet. Start writing and publish your first blog!</p>
               </div>
@@ -61,12 +53,12 @@ const myBlogPage = async () => {
           </div>
         </div>
 
-        {/* Unpublished Blogs / Drafts */}
+        {/* Drafts */}
         <div>
-          <h2 className="text-white font-bold text-2xl flex items-center gap-2 mb-6">
-            <FileEdit size={24} className="text-yellow-400" />
+          <h2 className="text-foreground font-bold text-2xl flex items-center gap-2 mb-6">
+            <FileEdit size={24} className="text-amber-500" />
             Drafts
-            <span className="text-sm font-normal text-gray-400">({unpublishedBlogs.length})</span>
+            <span className="text-sm font-normal text-muted-foreground">({unpublishedBlogs.length})</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {unpublishedBlogs.length > 0 ? (
@@ -74,7 +66,7 @@ const myBlogPage = async () => {
                 <UnpublishedBlogCard key={blog.id} blog={blog} />
               ))
             ) : (
-              <div className="col-span-full text-gray-400 bg-gray-800/30 rounded-xl p-8 text-center border border-gray-700/30">
+              <div className="col-span-full text-muted-foreground glass-card rounded-xl p-8 text-center">
                 <FileEdit size={40} className="mx-auto mb-3 opacity-30" />
                 <p>No drafts. All your work is published!</p>
               </div>

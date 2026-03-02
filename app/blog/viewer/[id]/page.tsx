@@ -78,24 +78,34 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
 
   if (!blog) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-        <div className="text-center text-white">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center text-foreground">
           <h1 className="text-4xl font-bold mb-4">Blog not found</h1>
-          <p className="text-gray-400">This blog may have been deleted or doesn&apos;t exist.</p>
+          <p className="text-muted-foreground">This blog may have been deleted or doesn&apos;t exist.</p>
         </div>
       </div>
     );
   }
 
+  // Check if user has bookmarked this blog
+  const existingBookmark = await prisma.bookmark.findUnique({
+    where: { userId_blogId: { userId, blogId: id } },
+  });
+
+  // Check if user has voted on this blog
+  const existingVote = await prisma.vote.findUnique({
+    where: { userId_blogId: { userId, blogId: id } },
+  });
+
   const viewCount = blog.views.length;
   const readingTime = estimateReadingTime(blog.content);
   const showFollow = blog.author.id !== userId;
   const unfollow = blog.author.followers.some(
-    (follower) => follower.id === userId
+    (follower: any) => follower.id === userId
   );
 
   return (
-    <div className="h-screen overflow-y-scroll bg-gradient-to-br from-gray-900 to-black relative">
+    <div className="h-screen overflow-y-scroll bg-background relative">
       <ReadingProgress />
       <div className="p-4 md:p-8">
         <BlogViewer
@@ -105,7 +115,7 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
           author={blog.author}
           upVotes={blog.upVotes}
           downVotes={blog.downVotes}
-          initialComments={blog.comments.map((c) => ({
+          initialComments={blog.comments.map((c: any) => ({
             ...c,
             repliesCount: c._count.replies,
             _count: c._count,
@@ -117,6 +127,10 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
           createdAt={blog.createdAt}
           readingTime={readingTime}
           tags={blog.tags}
+          initialBookmarked={!!existingBookmark}
+          initialVote={existingVote ? (existingVote.upVote ? 'up' : 'down') : null}
+          isAuthor={blog.author.id === userId}
+          currentUserId={userId}
         />
       </div>
     </div>

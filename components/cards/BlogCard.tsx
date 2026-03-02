@@ -5,116 +5,95 @@ import { useState } from 'react';
 import { Clock, Eye, ChevronRight, BookOpen } from 'lucide-react';
 import { estimateReadingTime } from '@/utils/readingTime';
 import type { BlogCard as BlogCardType } from '@/types';
+import { cn } from '@/lib/utils';
 
-const GRADIENTS = [
-  'from-indigo-600/10 to-fuchsia-600/10 border-indigo-500/20',
-  'from-fuchsia-600/10 to-indigo-600/10 border-fuchsia-500/20',
-  'from-purple-600/10 to-indigo-600/10 border-purple-500/20',
-  'from-indigo-600/10 to-purple-600/10 border-indigo-500/20',
-];
-
-// Deterministic gradient based on blog id hash
-const getGradient = (id: string) => {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
-};
-
-const BlogCard: React.FC<{ blog: BlogCardType; featured?: boolean }> = ({ blog, featured }) => {
+const BlogCard: React.FC<{ blog: BlogCardType }> = ({ blog }) => {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
+  const readingTime = estimateReadingTime(blog.content || '');
 
-  const handleClick = async () => {
-    try {
-      await fetch(`/api/views/${blog.id}`, { method: 'POST' });
-      router.push(`/blog/viewer/${blog.id}`);
-    } catch (error) {
-      console.error('Failed to record view:', error);
-      router.push(`/blog/viewer/${blog.id}`);
-    }
-  };
-
-  const creationDate = new Date(blog.createdAt).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const readingTime = blog.content ? estimateReadingTime(blog.content) : null;
-  const gradient = getGradient(blog.id);
-  const viewCount = Array.isArray(blog.views) ? blog.views.length : 0;
-  const authorPhoto = blog.author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
+  const avatar = blog.author.profilePhoto || 
+    `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
 
   return (
-    <div 
-      className={`bg-gradient-to-br ${gradient} border rounded-xl overflow-hidden shadow-lg hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer group`}
-      onClick={handleClick}
+    <article
+      onClick={() => router.push(`/blog/viewer/${blog.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      className={cn(
+        "group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-500",
+        "bg-white/60 dark:bg-white/5 backdrop-blur-xl",
+        "border border-black/5 dark:border-white/10",
+        "shadow-sm hover:shadow-xl dark:shadow-none",
+        "hover:-translate-y-1"
+      )}
     >
-      <div className="p-5">
-        {/* Author information and date */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Image
-              src={authorPhoto}
-              alt={`${blog.author.firstName}'s profile`}
-              width={40}
-              height={40}
-              className="rounded-full border border-zinc-700/50"
-            />
-            <div>
-              <h3 className="text-white text-sm font-medium">
-                {blog.author.firstName} {blog.author.lastName}
-              </h3>
-              <div className="flex items-center text-zinc-400 text-xs gap-2">
-                <span className="flex items-center gap-1">
-                  <Clock size={12} />
-                  {creationDate}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 text-zinc-400 text-xs">
-            {readingTime && (
-              <span className="flex items-center gap-1">
-                <BookOpen size={12} />
-                {readingTime} min
-              </span>
+      {/* Image */}
+      <div className="relative w-full h-48 overflow-hidden">
+        {blog.imageUrl ? (
+          <Image
+            src={blog.imageUrl}
+            fill
+            alt={blog.title}
+            className={cn(
+              "object-cover transition-transform duration-700",
+              isHovered && "scale-110"
             )}
-            <span className="flex items-center gap-1">
-              <Eye size={14} />
-              {viewCount}
-            </span>
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-fuchsia-400/20 flex items-center justify-center">
+            <BookOpen className="w-12 h-12 text-primary/40" />
           </div>
-        </div>
-        
-        {/* Blog title */}
-        <h2 className={`${featured ? 'text-2xl' : 'text-xl'} font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-300 transition-colors`}>
-          {blog.title}
-        </h2>
-        
-        {/* Blog description */}
-        <p className="text-zinc-300 text-sm mb-4 line-clamp-3">
-          {blog.description}
-        </p>
-        
-        {/* Read more button with animation */}
-        <div className="flex justify-end">
-          <button 
-            className={`text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center transition-all duration-300 ${
-              isHovered ? 'translate-x-0 opacity-100' : '-translate-x-2 opacity-70'
-            }`}
-          >
-            Read more
-            <ChevronRight size={16} className={`transition-all duration-300 ${isHovered ? 'ml-2' : 'ml-1'}`} />
-          </button>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+        {/* Reading time badge */}
+        <div className="absolute top-3 right-3 glass rounded-full px-3 py-1 text-xs font-medium text-white flex items-center gap-1.5">
+          <Clock className="w-3 h-3" />
+          {readingTime} min
         </div>
       </div>
-    </div>
+
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-5">
+        <h2 className="text-lg font-semibold text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors duration-300">
+          {blog.title}
+        </h2>
+
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
+          {blog.description || 'No description available.'}
+        </p>
+
+        {/* Author Row */}
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
+          <div className="flex items-center gap-2.5">
+            <Image
+              src={avatar}
+              height={32}
+              width={32}
+              alt={blog.author.firstName}
+              className="rounded-full ring-2 ring-primary/20"
+            />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {blog.author.firstName} {blog.author.lastName || ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-muted-foreground text-xs">
+            <span className="flex items-center gap-1">
+              <Eye className="w-3.5 h-3.5" />
+              {blog._count?.views ?? blog.views?.length ?? 0}
+            </span>
+            <ChevronRight className={cn(
+              "w-4 h-4 transition-transform duration-300",
+              isHovered && "translate-x-1 text-primary"
+            )} />
+          </div>
+        </div>
+      </div>
+    </article>
   );
 };
 

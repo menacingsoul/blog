@@ -6,7 +6,9 @@ const ProfilePage = async () => {
   const user = await getUserByClerkID();
   
   return (
-    <div className="text-white min-h-screen flex flex-col items-center justify-center relative p-5 pb-20 md:pb-5 bg-gradient-to-br from-gray-900 to-black">
+    <div className="min-h-screen flex flex-col items-center justify-center relative p-5 pb-20 md:pb-5 bg-background">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full filter blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-fuchsia-500/5 rounded-full filter blur-3xl translate-y-1/2 -translate-x-1/2" />
       <ProfileCard user={user} />
     </div>
   );

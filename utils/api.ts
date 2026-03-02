@@ -258,6 +258,19 @@ export const toggleCommentLike = async (commentId: string) => {
   }
 };
 
+export const deleteComment = async (commentId: string) => {
+  try {
+    const response = await fetch(`/api/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete comment');
+    return response.json();
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    throw error;
+  }
+};
+
 export const updateProfile = async (profileData: {
   firstName: string;
   lastName?: string;

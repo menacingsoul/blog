@@ -101,9 +101,12 @@ export interface BlogCard {
   title: string;
   description: string;
   content?: string;
+  imageUrl?: string | null;
   createdAt: Date;
+  updatedAt: Date;
   views?: View[];
   author: UserSummary;
+  _count?: { views: number };
 }
 
 /** Blog data for the viewer page */
