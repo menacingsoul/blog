@@ -5,7 +5,7 @@ import FeaturedBlogCard from '@/components/cards/FeaturedBlogCard';
 import NewBlogCard from '@/components/cards/NewBlogCard';
 import HomeSearch from '@/components/home/HomeSearch';
 import Link from 'next/link';
-import { ArrowRightCircle, TrendingUp, Clock, Search } from 'lucide-react';
+import { ArrowRightCircle, TrendingUp, Clock } from 'lucide-react';
 
 export const revalidate = 3600;
 
@@ -42,7 +42,6 @@ const BlogPage = async () => {
     take: 6,
   });
 
-  // Fetch categories for filter chips
   const categories = await prisma.category.findMany({
     include: { _count: { select: { blogs: true } } },
     orderBy: { blogs: { _count: 'desc' } },
@@ -53,14 +52,18 @@ const BlogPage = async () => {
   const topBlogs = mostViewedBlogs.slice(1, 3);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden pb-20 md:pb-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden pb-20 md:pb-8">
+      {/* Subtle background gradient blobs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full filter blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-fuchsia-500/5 rounded-full filter blur-3xl translate-y-1/2 -translate-x-1/2" />
+
       {/* Hero section */}
       <section className="relative z-10 max-w-7xl mx-auto mb-12 pt-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight animate-fadeInUp">
-            Explore the <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">BlogVerse</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 tracking-tight animate-fadeInUp">
+            Explore the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-fuchsia-400">BlogVerse</span>
           </h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Discover insightful articles, stories, and perspectives from our community of writers.
           </p>
         </div>
@@ -75,10 +78,10 @@ const BlogPage = async () => {
               <Link
                 key={cat.id}
                 href={`/blog/blogs?search=${encodeURIComponent(cat.name)}`}
-                className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/70 border border-gray-700/50 text-gray-300 hover:border-indigo-500/50 hover:text-indigo-300 transition-colors"
+                className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary/80 dark:bg-secondary/50 border border-border text-secondary-foreground hover:border-primary/50 hover:text-primary transition-colors"
               >
                 {cat.name}
-                <span className="ml-1 text-gray-500">({cat._count.blogs})</span>
+                <span className="ml-1 text-muted-foreground">({cat._count.blogs})</span>
               </Link>
             ))}
           </div>
@@ -92,8 +95,8 @@ const BlogPage = async () => {
       {featuredBlog && (
         <section className="relative z-10 max-w-7xl mx-auto mb-16 animate-fadeInUp">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-white text-2xl font-bold flex items-center">
-              <TrendingUp className="mr-2" size={24} />
+            <h2 className="text-foreground text-2xl font-bold flex items-center">
+              <TrendingUp className="mr-2 text-primary" size={24} />
               Featured Post
             </h2>
           </div>
@@ -105,11 +108,11 @@ const BlogPage = async () => {
       {topBlogs.length > 0 && (
         <section className="relative z-10 max-w-7xl mx-auto mb-16">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-white text-2xl font-bold">Top Blogs</h2>
+            <h2 className="text-foreground text-2xl font-bold">Top Blogs</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {topBlogs.map(blog => (
-              <BlogCard key={blog.id} blog={blog} featured={true} />
+              <BlogCard key={blog.id} blog={blog} />
             ))}
           </div>
         </section>
@@ -118,13 +121,13 @@ const BlogPage = async () => {
       {/* Recent blogs section */}
       <section className="relative z-10 max-w-7xl mx-auto mb-12">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-white text-2xl font-bold flex items-center">
-            <Clock className="mr-2" size={24} />
+          <h2 className="text-foreground text-2xl font-bold flex items-center">
+            <Clock className="mr-2 text-primary" size={24} />
             Recent Publications
           </h2>
           <Link 
             href="/blog/blogs" 
-            className="flex items-center gap-x-2 text-white hover:text-purple-400 transition-colors group"
+            className="flex items-center gap-x-2 text-muted-foreground hover:text-primary transition-colors group"
           >
             <span>View all</span>
             <ArrowRightCircle className="group-hover:translate-x-1 transition-transform" size={20} />

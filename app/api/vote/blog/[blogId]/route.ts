@@ -25,32 +25,31 @@ export async function POST(request: NextRequest, { params }: { params: { blogId:
       },
     });
 
-    // If the user has already voted, update the existing vote
     if (existingVote) {
       if (existingVote.upVote === isUpvote) {
-        // If the user is trying to vote the same way again, ignore the vote
-        return NextResponse.json({ message: `You have already ${type.toLowerCase()}d this blog` }, { status: 200 });
+        // Same vote again — return current counts
+        const blog = await prisma.blog.findUnique({
+          where: { id: blogId },
+          select: { upVotes: true, downVotes: true },
+        });
+        return NextResponse.json({ message: `You have already ${type}d this blog`, blog });
       } else {
-        // If the user is changing their vote, update the vote
+        // Changing vote direction
         await prisma.vote.update({
-          where: {
-            id: existingVote.id,
-          },
-          data: {
-            upVote: isUpvote,
-          },
+          where: { id: existingVote.id },
+          data: { upVote: isUpvote },
         });
 
-        // Update the vote count in the blog
-        await prisma.blog.update({
+        const blog = await prisma.blog.update({
           where: { id: blogId },
           data: {
             upVotes: { increment: isUpvote ? 1 : -1 },
             downVotes: { increment: isUpvote ? -1 : 1 },
           },
+          select: { upVotes: true, downVotes: true },
         });
 
-        return NextResponse.json({ message: `Your vote has been updated to ${type.toLowerCase()}` }, { status: 200 });
+        return NextResponse.json({ message: `Your vote has been updated to ${type}`, blog });
       }
     }
 
@@ -63,16 +62,16 @@ export async function POST(request: NextRequest, { params }: { params: { blogId:
       },
     });
 
-    // Update the vote count in the blog
-    await prisma.blog.update({
+    const blog = await prisma.blog.update({
       where: { id: blogId },
       data: {
         upVotes: { increment: isUpvote ? 1 : 0 },
         downVotes: { increment: isUpvote ? 0 : 1 },
       },
+      select: { upVotes: true, downVotes: true },
     });
 
-    return NextResponse.json({ message: `Your ${type.toLowerCase()} has been recorded` }, { status: 200 });
+    return NextResponse.json({ message: `Your ${type} has been recorded`, blog });
   } catch (error) {
     console.error('Error handling vote:', error);
     return NextResponse.json({ error: 'Could not record vote' }, { status: 500 });

@@ -2,19 +2,18 @@ import React from 'react'
 import { prisma } from '@/utils/db'
 import { getUserByClerkID } from '@/utils/auth'
 import BlogCard from '@/components/cards/BlogCard'
+import { Users } from 'lucide-react'
 
 const FollowingBlog = async() => {
     const currUserId = (await getUserByClerkID()).id;
-    const blogs =await prisma.blog.findMany({
-        where:{
-            author:{
-                followers:{
-                    some:{
-                        id : currUserId
-                    }
+    const blogs = await prisma.blog.findMany({
+        where: {
+            author: {
+                followers: {
+                    some: { id: currUserId }
                 }
             },
-            published:true,
+            published: true,
         },
         include: {
             author: {
@@ -28,20 +27,30 @@ const FollowingBlog = async() => {
     })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="absolute top-26 left-[32%] w-[55%] h-60 md:w-64 md:h-64 lg:w-[40%] lg:h-72 bg-purple-500 rounded-full filter blur-3xl opacity-50 animate-blob"></div>
-      <div className="absolute top-36 left-[29%] w-[45%] h-48 md:w-64 md:h-64 lg:w-[50%] lg:h-96 bg-yellow-500 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-200"></div>
-      <div className="absolute top-6 left-[19%] w-[50%] h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 bg-pink-500 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-400"></div>
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-20 md:pb-8 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full filter blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <h1 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-3">
+          <Users size={28} className="text-primary" />
+          Following Feed
+        </h1>
         
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scrollbar-thin scrollbar-thumb-rounded">
-        {blogs.map(blog => (
-          <BlogCard key={blog.id} blog={blog} />
-        ))}
+        {blogs.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground glass-card rounded-2xl">
+            <Users size={48} className="mx-auto mb-4 opacity-30" />
+            <p className="text-lg">No posts from people you follow</p>
+            <p className="text-sm mt-1">Follow authors to see their posts here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogs.map(blog => (
+              <BlogCard key={blog.id} blog={blog} />
+            ))}
+          </div>
+        )}
       </div>
-
-      </div>
-    
+    </div>
   )
 }
 

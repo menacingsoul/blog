@@ -25,11 +25,7 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
       where,
       include: {
         author: {
-          select: {
-            firstName: true,
-            lastName: true,
-            profilePhoto: true,
-          },
+          select: { firstName: true, lastName: true, profilePhoto: true },
         },
         views: true,
       },
@@ -43,13 +39,13 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-8 px-4 sm:px-6 lg:px-8 pb-20 md:pb-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
-          <Search size={28} />
+        <h1 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-2">
+          <Search size={28} className="text-primary" />
           Explore Blogs
           {searchQuery && (
-            <span className="text-lg font-normal text-gray-400">
+            <span className="text-lg font-normal text-muted-foreground">
               — results for &quot;{searchQuery}&quot;
             </span>
           )}
@@ -57,7 +53,7 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
 
         <BlogsSearch />
 
-        <div className="text-gray-400 text-sm mb-6">
+        <div className="text-muted-foreground text-sm mb-6">
           {total} {total === 1 ? 'blog' : 'blogs'} found
         </div>
         
@@ -67,7 +63,7 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
               <BlogCard key={blog.id} blog={blog} />
             ))
           ) : (
-            <div className="col-span-full text-center py-20 text-gray-400">
+            <div className="col-span-full text-center py-20 text-muted-foreground glass-card rounded-2xl">
               <Search size={48} className="mx-auto mb-4 opacity-30" />
               <p className="text-lg">No blogs found</p>
               {searchQuery && (
@@ -83,7 +79,7 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
             {page > 1 && (
               <a
                 href={`/blog/blogs?${searchQuery ? `search=${searchQuery}&` : ''}page=${page - 1}`}
-                className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors text-sm"
+                className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 transition-colors text-sm border border-border"
               >
                 Previous
               </a>
@@ -94,14 +90,14 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
               .map((p, idx, arr) => (
                 <React.Fragment key={p}>
                   {idx > 0 && arr[idx - 1] !== p - 1 && (
-                    <span className="text-gray-500 px-1">...</span>
+                    <span className="text-muted-foreground px-1">...</span>
                   )}
                   <a
                     href={`/blog/blogs?${searchQuery ? `search=${searchQuery}&` : ''}page=${p}`}
                     className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                       p === page
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
                     }`}
                   >
                     {p}
@@ -113,7 +109,7 @@ const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?:
             {page < totalPages && (
               <a
                 href={`/blog/blogs?${searchQuery ? `search=${searchQuery}&` : ''}page=${page + 1}`}
-                className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors text-sm"
+                className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 transition-colors text-sm border border-border"
               >
                 Next
               </a>

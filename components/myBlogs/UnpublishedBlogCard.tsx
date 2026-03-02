@@ -4,42 +4,44 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Clock, FileEdit } from 'lucide-react';
 import type { BlogCard } from '@/types';
+import { cn } from '@/lib/utils';
 
 const UnpublishedBlogCard: React.FC<{ blog: BlogCard }> = ({ blog }) => {
-  const creationDate = new Date(blog.createdAt).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const formattedDate = new Date(blog.updatedAt).toLocaleDateString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric',
   });
 
-  const authorPhoto = blog.author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
-
   return (
-    <Link href={`/myblogs/editor/${blog.id}`} className="block rounded-xl overflow-hidden shadow-lg 
-      bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 
-      hover:border-yellow-500/40 hover:shadow-xl hover:shadow-yellow-500/5 transition-all duration-300">
-      <div className="p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
-            <FileEdit size={12} />
-            Draft
-          </span>
+    <Link href={`/myblogs/editor/${blog.id}`}>
+      <div className={cn(
+        "group rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer",
+        "bg-white/60 dark:bg-white/5 backdrop-blur-xl",
+        "border border-black/5 dark:border-white/10 border-dashed",
+        "shadow-sm hover:shadow-xl dark:shadow-none hover:-translate-y-1"
+      )}>
+        {blog.imageUrl && (
+          <div className="relative h-40 overflow-hidden">
+            <Image src={blog.imageUrl} fill alt={blog.title} className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-80" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          </div>
+        )}
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <FileEdit size={14} className="text-amber-500" />
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">Draft</span>
+          </div>
+          <h3 className="text-foreground font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+            {blog.title || 'Untitled Draft'}
+          </h3>
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{blog.description || 'No description yet'}</p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock size={12} />
+            <span>Last edited {formattedDate}</span>
+          </div>
         </div>
-        <h2 className="text-xl font-semibold mb-3 text-white line-clamp-2">
-          {blog.title || 'Untitled Blog'}
-        </h2>
-        <div className="flex items-center gap-2 mb-2">
-          <Image alt="Author" src={authorPhoto} height={28} width={28} className="rounded-full border border-zinc-700" />
-          <p className="text-zinc-400 text-sm">{blog.author.firstName} {blog.author.lastName}</p>
-        </div>
-        <p className="text-zinc-500 text-xs flex items-center gap-1 mb-2">
-          <Clock size={12} />
-          {creationDate}
-        </p>
-        <p className="text-zinc-400 text-sm line-clamp-2">{blog.description || 'No description yet'}</p>
       </div>
     </Link>
   );
-}
+};
 
 export default UnpublishedBlogCard;
