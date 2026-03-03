@@ -92,7 +92,7 @@ const ProfileCard: React.FC<{ user: ProfileUser }> = ({ user }) => {
           {user.bio && (
             <div className="bg-muted/30 dark:bg-muted/20 border border-border rounded-xl p-5 mb-8 text-center sm:text-left">
               <p className="text-foreground/80 leading-relaxed italic">
-                "{user.bio}"
+                &quot;{user.bio}&quot;
               </p>
             </div>
           )}
