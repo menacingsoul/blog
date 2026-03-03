@@ -5,9 +5,9 @@ const EditProfilePage = async () => {
   const user = await getCurrentUser();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">Edit Profile</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-8">Edit Profile</h1>
         <EditProfileForm
           initialData={{
             firstName: user.firstName,

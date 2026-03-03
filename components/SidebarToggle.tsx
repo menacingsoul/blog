@@ -105,9 +105,9 @@ const SidebarToggle = () => {
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
-                    {isActive && link.href !== '/notifications' && (
+                    {/* {isActive && link.href !== '/notifications' && (
                       <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]"></span>
-                    )}
+                    )} */}
                   </Link>
                 </li>
               );

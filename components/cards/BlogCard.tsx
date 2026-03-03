@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useLoading } from '@/components/LoadingProvider';
 import { Clock, Eye, ChevronRight, BookOpen } from 'lucide-react';
 import { estimateReadingTime } from '@/utils/readingTime';
 import type { BlogCard as BlogCardType } from '@/types';
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 const BlogCard: React.FC<{ blog: BlogCardType }> = ({ blog }) => {
   const router = useRouter();
+  const { setIsPageLoading } = useLoading();
   const [isHovered, setIsHovered] = useState(false);
   const readingTime = estimateReadingTime(blog.content || '');
 
@@ -17,7 +19,10 @@ const BlogCard: React.FC<{ blog: BlogCardType }> = ({ blog }) => {
 
   return (
     <article
-      onClick={() => router.push(`/blog/viewer/${blog.id}`)}
+      onClick={() => {
+        setIsPageLoading(true);
+        router.push(`/blog/viewer/${blog.id}`);
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(

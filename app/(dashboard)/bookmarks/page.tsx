@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { fetchBookmarks } from "@/utils/api";
-import { Bookmark as BookmarkIcon, Loader2, BookOpen } from "lucide-react";
+import { Bookmark as BookmarkIcon, BookOpen } from "lucide-react";
 import BlogCard from "@/components/cards/BlogCard";
 import type { Bookmark } from "@/types";
+import Loading from "@/components/Loading";
 
 const BookmarksPage = () => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -22,9 +23,7 @@ const BookmarksPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className=" h-16 w-16 animate-spin text-primary" />
-      </div>
+      <Loading />
     );
   }
 

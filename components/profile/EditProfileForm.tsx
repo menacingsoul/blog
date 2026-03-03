@@ -33,9 +33,9 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData }) => {
   };
 
   return (
-    <div className="bg-zinc-900/80 border border-zinc-700/50 rounded-2xl p-8 shadow-xl">
+    <div className="bg-background glass-card rounded-2xl p-8 shadow-xl border border-border">
       <div className="mb-6">
-        <Link href="/profile" className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm transition-colors">
+        <Link href="/profile" className="text-foreground hover:text-primary flex items-center gap-2 text-sm transition-colors">
           <ArrowLeft size={16} /> Back to Profile
         </Link>
       </div>
@@ -43,33 +43,33 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-zinc-400 text-sm mb-1">First Name *</label>
+            <label className="block text-foreground text-sm mb-1">First Name *</label>
             <input type="text" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} className="input-field" required />
           </div>
           <div>
-            <label className="block text-zinc-400 text-sm mb-1">Last Name</label>
+            <label className="block text-foreground text-sm mb-1">Last Name</label>
             <input type="text" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} className="input-field" />
           </div>
         </div>
 
         <div>
-          <label className="block text-zinc-400 text-sm mb-1">Bio *</label>
+          <label className="block text-foreground text-sm mb-1">Bio *</label>
           <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} className="input-field h-24" required />
         </div>
 
         <div>
-          <label className="block text-zinc-400 text-sm mb-1">Website</label>
+          <label className="block text-foreground text-sm mb-1">Website</label>
           <input type="url" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} placeholder="https://yourwebsite.com" className="input-field" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-zinc-400 text-sm mb-1">City *</label>
+            <label className="block text-foreground text-sm mb-1">City *</label>
             <input type="text" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="input-field" required />
           </div>
           <div>
-            <label className="block text-zinc-400 text-sm mb-1">Country *</label>
-            <CountryDropdown value={formData.country} onChange={val => setFormData({ ...formData, country: val })} classes="input-field" />
+            <label className="block text-foreground text-sm mb-1">Country *</label>
+            <CountryDropdown value={formData.country} onChange={val => setFormData({ ...formData, country: val })} classes="input-field glass-dropdown" />
           </div>
         </div>
 
@@ -77,11 +77,11 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData }) => {
 
         <div className="flex gap-4 pt-2">
           <button type="submit" disabled={isLoading || saved}
-            className={`flex items-center gap-2 py-2.5 px-6 rounded-lg font-medium transition-all duration-300 ${saved ? "bg-green-600 text-white" : "bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white"} disabled:opacity-70`}>
+            className={`flex items-center gap-2 py-2.5 px-6 rounded-lg font-medium transition-all duration-300 ${saved ? "bg-green-600 text-white" : "bg-primary text-white"} disabled:opacity-70`}>
             {isLoading ? <Loader2 size={18} className="animate-spin" /> : saved ? <Check size={18} /> : <Save size={18} />}
             {saved ? "Saved!" : isLoading ? "Saving..." : "Save Changes"}
           </button>
-          <Link href="/profile" className="py-2.5 px-6 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors">
+          <Link href="/profile" className="py-2.5 px-6 rounded-lg border border bg-destructive text-foreground">
             Cancel
           </Link>
         </div>

@@ -13,13 +13,11 @@ const raleway = Raleway({
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
-  console.log("HOME PAGE RENDERING - SESSION:", JSON.stringify(session, null, 2));
 
   if (session?.user?.id) {
     const userExists = await prisma.user.findUnique({
       where: { id: session.user.id },
     });
-    console.log("HOME PAGE - userExists:", userExists?.id, userExists?.registered);
 
     if (!userExists || !userExists.registered) {
       redirect('/new-user');
