@@ -3,12 +3,43 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/utils/db";
 
+// Helper to generate a unique username
+async function generateUniqueUsername(email: string) {
+  const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "user";
+  let username = baseUsername;
+  
+ 
+  const existingUser = await prisma.user.findUnique({ where: { username } });
+  if (!existingUser) return username;
+
+  
+  let isUnique = false;
+  let attempts = 0;
+  
+  while (!isUnique && attempts < 5) {
+    const randomSuffix = Math.random().toString(36).substring(2, 7);
+    const candidate = `${baseUsername}_${randomSuffix}`;
+    const check = await prisma.user.findUnique({ where: { username: candidate } });
+    
+    if (!check) {
+      username = candidate;
+      isUnique = true;
+    }
+    attempts++;
+  }
+
+  
+  if (!isUnique) {
+    username = `${baseUsername}_${Date.now().toString(36).slice(-5)}`;
+  }
+
+  return username;
+}
+
 // Map NextAuth user to our Prisma schema
 const CustomPrismaAdapter = PrismaAdapter(prisma);
 CustomPrismaAdapter.createUser = async (data: any) => {
-  const baseUsername = data.email?.split("@")[0] || "user";
-  const randomSuffix = Math.random().toString(36).substring(2, 7);
-  const username = `${baseUsername}_${randomSuffix}`;
+  const username = await generateUniqueUsername(data.email);
 
   return prisma.user.create({
     data: {
