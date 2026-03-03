@@ -1,11 +1,11 @@
 // app/api/comments/[commentId]/like/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 export async function POST(req: NextRequest, { params }: { params: { commentId: string } }) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
     const { commentId } = params;
 
     const existing = await prisma.commentLike.findUnique({

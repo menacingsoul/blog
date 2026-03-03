@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LocateFixed, Users, LogOut, BookOpen, Edit, Globe, Bookmark } from "lucide-react";
-import { SignOutButton } from "@clerk/nextjs";
+import { signOut } from "next-auth/react";
 import FollowerList from "../lists/FollowerList";
 import FollowingList from "../lists/FollowingList";
 import type { ProfileUser } from "@/types";
@@ -58,10 +58,12 @@ const ProfileCard: React.FC<{ user: ProfileUser }> = ({ user }) => {
         <div className="pt-20 px-8 pb-6">
           {/* Location & Website */}
           <div className="flex flex-wrap items-center gap-4 text-muted-foreground text-sm mb-4">
-            <div className="flex items-center gap-1">
-              <LocateFixed size={16} />
-              <span>{user.city}, {user.country}</span>
-            </div>
+            {user.city && user.country && (
+              <div className="flex items-center gap-1">
+                <LocateFixed size={16} />
+                <span>{user.city}, {user.country}</span>
+              </div>
+            )}
             {user.website && (
               <a href={user.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
                 <Globe size={16} />
@@ -71,9 +73,11 @@ const ProfileCard: React.FC<{ user: ProfileUser }> = ({ user }) => {
           </div>
 
           {/* Bio */}
-          <div className="bg-muted/30 dark:bg-muted/20 border border-border rounded-lg p-4 mb-6">
-            <p className="text-foreground/80 leading-relaxed">{user.bio}</p>
-          </div>
+          {user.bio && (
+            <div className="bg-muted/30 dark:bg-muted/20 border border-border rounded-lg p-4 mb-6">
+              <p className="text-foreground/80 leading-relaxed">{user.bio}</p>
+            </div>
+          )}
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
@@ -118,13 +122,12 @@ const ProfileCard: React.FC<{ user: ProfileUser }> = ({ user }) => {
 
           {/* Sign Out */}
           <div className="flex justify-center">
-            <button className="bg-gradient-to-r from-primary to-fuchsia-500 hover:from-primary/90 hover:to-fuchsia-500/90 text-primary-foreground rounded-lg px-6 py-2 shadow-lg shadow-primary/20 flex items-center gap-2 transition-all duration-300">
-              <SignOutButton redirectUrl="/">
-                <div className="flex items-center gap-2">
-                  <LogOut size={16} />
-                  <span>Sign Out</span>
-                </div>
-              </SignOutButton>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="bg-gradient-to-r from-primary to-fuchsia-500 hover:from-primary/90 hover:to-fuchsia-500/90 text-primary-foreground rounded-lg px-6 py-2 shadow-lg shadow-primary/20 flex items-center gap-2 transition-all duration-300"
+            >
+              <LogOut size={16} />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>

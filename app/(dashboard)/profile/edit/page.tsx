@@ -1,8 +1,8 @@
 import EditProfileForm from "@/components/profile/EditProfileForm";
-import { getUserByClerkID } from "@/utils/auth";
+import { getCurrentUser } from "@/utils/auth";
 
 const EditProfilePage = async () => {
-  const user = await getUserByClerkID();
+  const user = await getCurrentUser();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
@@ -12,10 +12,10 @@ const EditProfilePage = async () => {
           initialData={{
             firstName: user.firstName,
             lastName: user.lastName || "",
-            bio: user.bio,
+            bio: user.bio || "",
             website: user.website || "",
-            city: user.city,
-            country: user.country,
+            city: user.city || "",
+            country: user.country || "",
             profilePhoto: user.profilePhoto || "",
           }}
         />

@@ -1,11 +1,11 @@
 import React from 'react'
 import { prisma } from '@/utils/db'
-import { getUserByClerkID } from '@/utils/auth'
+import { getUser } from '@/utils/auth'
 import BlogCard from '@/components/cards/BlogCard'
 import { Users } from 'lucide-react'
 
 const FollowingBlog = async() => {
-    const currUserId = (await getUserByClerkID()).id;
+    const currUserId = (await getUser()).id;
     const blogs = await prisma.blog.findMany({
         where: {
             author: {

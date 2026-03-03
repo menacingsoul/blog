@@ -1,9 +1,6 @@
-import { SignUp } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-zinc-900">
-      <SignUp />
-    </div>
-  );
+// With Google OAuth, sign-up and sign-in are the same flow
+export default function SignUpPage() {
+  redirect("/sign-in");
 }

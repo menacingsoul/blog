@@ -1,12 +1,12 @@
 import BlogViewer from '@/components/blog/BlogViewer';
 import ReadingProgress from '@/components/blog/ReadingProgress';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 import { estimateReadingTime } from '@/utils/readingTime';
 
 const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const currentUserId = user.id;
   
   const blog = await prisma.blog.findUnique({

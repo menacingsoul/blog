@@ -1,11 +1,11 @@
 // app/api/notifications/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
     const { searchParams } = new URL(req.url);
     const take = Number(searchParams.get('take') || 20);
     const skip = Number(searchParams.get('skip') || 0);
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 // Mark notifications as read
 export async function PUT(req: NextRequest) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
     const { notificationIds } = await req.json();
 
     if (notificationIds && Array.isArray(notificationIds)) {

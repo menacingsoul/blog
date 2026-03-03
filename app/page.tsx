@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Raleway } from "next/font/google";
-import { currentUser } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { redirect } from 'next/navigation';
 import { prisma } from '@/utils/db';
 
@@ -11,15 +12,16 @@ const raleway = Raleway({
 });
 
 export default async function Home() {
-  const user = await currentUser();
+  const session = await getServerSession(authOptions);
+  console.log("HOME PAGE RENDERING - SESSION:", JSON.stringify(session, null, 2));
 
-  if (user) {
-    const userId = user.id;
+  if (session?.user?.id) {
     const userExists = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { id: session.user.id },
     });
+    console.log("HOME PAGE - userExists:", userExists?.id, userExists?.registered);
 
-    if (!userExists) {
+    if (!userExists || !userExists.registered) {
       redirect('/new-user');
     } else {
       redirect('/home');
@@ -75,7 +77,7 @@ export default async function Home() {
             </p>
             
             <div className="flex flex-wrap gap-4">
-              <Link href="/sign-up">
+              <Link href="/sign-in">
                 <button className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40">
                   Start Blogging
                 </button>
@@ -104,7 +106,7 @@ export default async function Home() {
             </div>
           </div>
           
-          {/* Right side - floating cards (visible on larger screens, simplified on mobile) */}
+          {/* Right side - floating cards */}
           <div className="relative h-64 w-64 md:h-96 md:w-96">
             <div className="absolute top-0 left-0 w-52 h-52 md:w-64 md:h-64 bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform rotate-6 hover:rotate-3 transition-all duration-300">
               <div className="p-6">

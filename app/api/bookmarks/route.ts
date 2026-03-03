@@ -1,12 +1,12 @@
 // app/api/bookmarks/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 // Toggle bookmark (add/remove)
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
     const { blogId } = await req.json();
 
     const existing = await prisma.bookmark.findUnique({
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 // Get user's bookmarks
 export async function GET(req: NextRequest) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
 
     const bookmarks = await prisma.bookmark.findMany({
       where: { userId: user.id },

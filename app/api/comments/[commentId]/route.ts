@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { commentId: string } }
 ) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
     const { commentId } = params;
 
     // Fetch the comment with its blog's author

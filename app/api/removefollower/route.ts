@@ -1,7 +1,7 @@
 // app/api/follow/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 export const POST = async (request: NextRequest) => {
   const { followerId } = await request.json();
@@ -9,7 +9,7 @@ export const POST = async (request: NextRequest) => {
     return NextResponse.json({ message: 'Author ID is required' }, { status: 400 });
   }
 
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const currUserId = user.id;
 
   try {

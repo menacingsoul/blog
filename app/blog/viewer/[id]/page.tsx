@@ -1,7 +1,7 @@
 import BlogViewer from "@/components/blog/BlogViewer";
 import ReadingProgress from "@/components/blog/ReadingProgress";
 import { prisma } from "@/utils/db";
-import { getUserByClerkID } from "@/utils/auth";
+import { getUser } from "@/utils/auth";
 import { estimateReadingTime } from "@/utils/readingTime";
 import type { Metadata } from "next";
 
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const userId = user.id;
 
   const blog = await prisma.blog.findUnique({
