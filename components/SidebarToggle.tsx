@@ -15,7 +15,6 @@ const raleway = Raleway({
 
 const links = [
   { href: '/home', label: 'Home', icon: <Home className="w-5 h-5" /> },
-  { href: '/myblogs', label: 'My Blogs', icon: <BookOpen className="w-5 h-5" /> },
   { href: '/blog/blogs', label: 'Explore', icon: <Search className="w-5 h-5" /> },
   { href: '/notifications', label: 'Notifications', icon: <Bell className="w-5 h-5" /> },
   { href: '/profile', label: 'Profile', icon: <User2 className="w-5 h-5" /> },
@@ -154,7 +153,6 @@ const SidebarToggle = () => {
                     </span>
                   )}
                 </span>
-                <span className="text-[10px]">{link.label}</span>
               </Link>
             );
           })}

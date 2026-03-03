@@ -322,3 +322,14 @@ export const searchBlogs = async (params: {
     throw error;
   }
 };
+
+export const recordView = async (blogId: string) => {
+  try {
+    const response = await fetch(`/api/views/${blogId}`, {
+      method: 'POST',
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Error recording view:', error);
+  }
+};
