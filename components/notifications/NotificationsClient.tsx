@@ -6,6 +6,7 @@ import { Bell, MessageSquare, Heart, Users, Check, CheckCheck, Loader2 } from "l
 import Link from "next/link";
 import type { Notification } from "@/types";
 import { cn } from "@/lib/utils";
+import Loading from "../Loading";
 
 const NotificationIcon: React.FC<{ type: string }> = ({ type }) => {
   switch (type) {
@@ -55,11 +56,10 @@ const NotificationsClient = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <Loading />
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-20 md:pb-8">

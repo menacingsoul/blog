@@ -6,6 +6,10 @@ import { prisma } from "@/utils/db";
 // Map NextAuth user to our Prisma schema
 const CustomPrismaAdapter = PrismaAdapter(prisma);
 CustomPrismaAdapter.createUser = async (data: any) => {
+  const baseUsername = data.email?.split("@")[0] || "user";
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  const username = `${baseUsername}_${randomSuffix}`;
+
   return prisma.user.create({
     data: {
       email: data.email,
@@ -13,7 +17,8 @@ CustomPrismaAdapter.createUser = async (data: any) => {
       firstName: data.name?.split(" ")[0] || "User",
       lastName: data.name?.split(" ").slice(1).join(" ") || null,
       profilePhoto: data.image,
-      registered: false,
+      username: username,
+      registered: true,
     },
   }) as any;
 };
@@ -32,16 +37,29 @@ export const authOptions: NextAuthOptions = {
       if (!user.email) return false;
 
       // Ensure profile photo is updated if it's missing on existing users
-      if (user.image && user.email) {
+      if (user.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
         });
 
-        if (dbUser && !dbUser.profilePhoto) {
-          await prisma.user.update({
-            where: { id: dbUser.id },
-            data: { profilePhoto: user.image },
-          });
+        if (dbUser) {
+          const updateData: any = {};
+          
+          if (!dbUser.profilePhoto && user.image) {
+            updateData.profilePhoto = user.image;
+          }
+          
+          // Auto-register existing users who haven't completed it
+          if (!dbUser.registered) {
+            updateData.registered = true;
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: updateData,
+            });
+          }
         }
       }
       // If no existing user, the PrismaAdapter will create a new one automatically

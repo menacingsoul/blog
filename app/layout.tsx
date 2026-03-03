@@ -5,6 +5,7 @@ import { Poppins } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/react"
 import { ThemeProvider } from '@/components/theme-provider'
 import AuthProvider from '@/components/AuthProvider'
+import { LoadingProvider } from '@/components/LoadingProvider'
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -37,7 +38,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <LoadingProvider>
+              {children}
+            </LoadingProvider>
             <Analytics />
           </ThemeProvider>
         </AuthProvider>
