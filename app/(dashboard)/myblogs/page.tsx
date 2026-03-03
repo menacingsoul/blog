@@ -1,12 +1,12 @@
 import React from "react";
-import { getUserByClerkID } from "@/utils/auth";
+import { getUser } from "@/utils/auth";
 import { prisma } from '@/utils/db';
 import UnpublishedBlogCard from "@/components/myBlogs/UnpublishedBlogCard";
 import PublishedBlogCard from "@/components/myBlogs/PublishedBlogcard";
 import { FileText, FileEdit } from "lucide-react";
 
 const myBlogPage = async () => {
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const id = user.id;
 
   const publishedBlogs = await prisma.blog.findMany({

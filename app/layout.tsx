@@ -2,8 +2,9 @@ import './globals.css'
 import type { Metadata } from 'next'
 import React from 'react'
 import { Poppins } from 'next/font/google'
-import { ClerkProvider } from '@clerk/nextjs'
 import { Analytics } from "@vercel/analytics/react"
+import { ThemeProvider } from '@/components/theme-provider'
+import AuthProvider from '@/components/AuthProvider'
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -21,17 +22,15 @@ export const metadata: Metadata = {
   },
 }
 
-import { ThemeProvider } from '@/components/theme-provider'
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={poppins.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={poppins.className}>
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -41,8 +40,8 @@ export default function RootLayout({
             {children}
             <Analytics />
           </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </AuthProvider>
+      </body>
+    </html>
   )
 }

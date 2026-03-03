@@ -1,10 +1,10 @@
 import BlogEditor from '@/components/blog/BlogEditor';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 const PublishedEditorPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const currentUserId = user.id;
 
   const blog = await prisma.blog.findUnique({

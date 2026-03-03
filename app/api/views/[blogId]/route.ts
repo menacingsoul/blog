@@ -1,11 +1,11 @@
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 import { NextResponse,NextRequest } from 'next/server';
 import { prisma } from '@/utils/db';
 
 export async function POST(request: NextRequest, { params }: { params: { blogId: string } }) {
   const blogId = params.blogId;
 
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const userId = user.id; 
 
   if (!userId) {

@@ -1,9 +1,9 @@
 import React from "react";
 import ProfileCard from "@/components/cards/ProfileCard";
-import { getUserByClerkID } from "@/utils/auth";
+import { getUser } from "@/utils/auth";
 
 const ProfilePage = async () => {
-  const user = await getUserByClerkID();
+  const user = await getUser();
   
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative p-5 pb-20 md:pb-5 bg-background">

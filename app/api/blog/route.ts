@@ -1,11 +1,11 @@
 // app/api/blog/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
 
     const newBlog = await prisma.blog.create({
       data: {

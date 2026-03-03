@@ -1,18 +1,28 @@
-import { auth } from '@clerk/nextjs/server'
-import { prisma } from './db'
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "./db";
 
-export const getUserByClerkID = async () => {
-  const { userId } =  await auth();
+export const getCurrentUser = async () => {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
 
   const user = await prisma.user.findUniqueOrThrow({
     where: {
-      clerkId: userId as string,
+      id: session.user.id,
     },
-    include:{
-        followers : true,
-        following : true,
-        posts :true,
-    }
-  })
-  return user
-}
+    include: {
+      followers: true,
+      following: true,
+      posts: true,
+    },
+  });
+
+  return user;
+};
+
+
+
+export const getUser = getCurrentUser;

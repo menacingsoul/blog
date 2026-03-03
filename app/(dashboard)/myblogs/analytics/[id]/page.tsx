@@ -1,11 +1,11 @@
 import React from 'react';
 import Analysis from '@/components/myBlogs/Analysis';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 
 const AnalyticsPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
-  const user = await getUserByClerkID();
+  const user = await getUser();
   const currentUserId = user.id;
 
   // Fetch the blog data on the server side

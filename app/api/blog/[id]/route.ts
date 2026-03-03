@@ -1,7 +1,7 @@
 // app/api/blog/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
-import { getUserByClerkID } from '@/utils/auth';
+import { getUser } from '@/utils/auth';
 import { sanitizeHtml } from '@/utils/sanitize';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -9,7 +9,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { title, content, description, published, imageUrl } = await req.json();
 
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
 
     // Authorization: only the author can edit
     const blog = await prisma.blog.findUnique({ where: { id }, select: { authorId: true } });
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { type, content, parentId } = await req.json();
 
   try {
-    const user = await getUserByClerkID();
+    const user = await getUser();
 
     if (type === 'comment') {
       // Sanitize comment content
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
-    const user = await getUserByClerkID();
+    const user = await getUser();
 
     // Authorization: only the author can delete
     const blog = await prisma.blog.findUnique({ where: { id }, select: { authorId: true } });

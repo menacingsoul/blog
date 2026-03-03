@@ -21,7 +21,7 @@ const FollowingList: React.FC<{ followings: UserFollower[] }> = ({ followings })
 
   const filteredFollowing = followingList.filter(f => 
     f.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.username.toLowerCase().includes(searchTerm.toLowerCase())
+    (f.username || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getAvatar = (f: UserFollower) => f.profilePhoto || `https://eu.ui-avatars.com/api/?name=${f.firstName}+${f.lastName || ''}&color=7F9CF5&background=EBF4FF`;

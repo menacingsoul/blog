@@ -7,14 +7,14 @@ export interface User {
   id: string;
   firstName: string;
   lastName: string | null;
-  username: string;
-  clerkId: string;
+  username: string | null;
   email: string;
+  emailVerified: Date | null;
   website: string | null;
-  bio: string;
+  bio: string | null;
   registered: boolean;
-  city: string;
-  country: string;
+  city: string | null;
+  country: string | null;
   profilePhoto: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -44,11 +44,11 @@ export interface UserSummary {
 export interface ProfileUser {
   firstName: string;
   lastName: string | null;
-  username: string;
+  username: string | null;
   email?: string;
-  bio: string;
-  city: string;
-  country: string;
+  bio: string | null;
+  city: string | null;
+  country: string | null;
   website: string | null;
   profilePhoto: string | null;
   followers: UserFollower[];
@@ -60,7 +60,7 @@ export interface UserFollower {
   id: string;
   firstName: string;
   lastName: string | null;
-  username: string;
+  username: string | null;
   profilePhoto: string | null;
 }
 
@@ -133,7 +133,7 @@ export interface BlogAuthor {
   firstName: string;
   lastName: string | null;
   profilePhoto: string | null;
-  username: string;
+  username: string | null;
   followers?: UserFollower[];
 }
 
