@@ -5,7 +5,7 @@ import parse from 'html-react-parser';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TwitterShareButton, WhatsappShareButton, TelegramShareButton, FacebookShareButton, TelegramIcon, XIcon, WhatsappIcon, FacebookIcon } from 'react-share';
-import { handleVote, followUser, unFollowUser, toggleBookmark } from '@/utils/api';
+import { handleVote, followUser, unFollowUser, toggleBookmark, recordView } from '@/utils/api';
 import { 
   EyeIcon, Share2, X, ThumbsUp, ThumbsDown, Copy,
   Loader2, BookmarkPlus, Bookmark, MessageSquare, Calendar,
@@ -48,12 +48,25 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   const [hasVoted, setHasVoted] = useState({ up: initialVote === 'up', down: initialVote === 'down' });
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [currentViewCount, setCurrentViewCount] = useState(viewCount);
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/blog/viewer/${blogId}` : '';
   const shareTitle = title;
   const authorPhoto = author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${author.firstName}+${author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
 
   useEffect(() => { if (copied) { const t = setTimeout(() => setCopied(false), 2000); return () => clearTimeout(t); } }, [copied]);
+
+  useEffect(() => {
+    const record = async () => {
+      if (currentUserId && blogId) {
+        const res = await recordView(blogId);
+        if (res && res.message === 'View recorded') {
+          setCurrentViewCount(prev => prev + 1);
+        }
+      }
+    };
+    record();
+  }, [blogId, currentUserId]);
 
   const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
     try {
@@ -212,7 +225,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
                   {/* Stats bar */}
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5" title="Views"><EyeIcon size={15} /><span>{viewCount}</span></div>
+                    <div className="flex items-center gap-1.5" title="Views"><EyeIcon size={15} /><span>{currentViewCount}</span></div>
                     <div className="flex items-center gap-1.5" title="Comments"><MessageSquare size={15} /><span>{totalCommentCount}</span></div>
                     {readingTime && <div className="flex items-center gap-1.5" title="Reading time"><BookOpen size={15} /><span>{readingTime} min</span></div>}
                     <div className="flex items-center gap-1.5" title="Published"><Calendar size={15} /><span>{formatDate(createdAt)}</span></div>
