@@ -144,11 +144,6 @@ const Comments: React.FC<CommentsProps> = ({ blogId, initialComments, currentUse
   return (
     <div ref={commentSectionRef}>
       <div>
-        <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-          <MessageSquare size={20} className="text-primary" /> Comments
-          <span className="text-sm font-normal text-muted-foreground ml-1">({totalCommentCount})</span>
-        </h2>
-
         {/* Comment Form */}
         <div className="mb-6">
           <div className="relative">
@@ -172,7 +167,7 @@ const Comments: React.FC<CommentsProps> = ({ blogId, initialComments, currentUse
 
         {/* Comments List */}
         {comments.length > 0 ? (
-          <div className="space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-comment">
+          <div className="space-y-4">
             {comments.map(comment => {
               const replyCount = getReplyCount(comment);
               const likeCount = getLikeCount(comment);

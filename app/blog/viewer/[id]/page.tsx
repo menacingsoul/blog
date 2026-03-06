@@ -4,6 +4,8 @@ import { prisma } from "@/utils/db";
 import { getUser } from "@/utils/auth";
 import { estimateReadingTime } from "@/utils/readingTime";
 import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -19,10 +21,17 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     description: blog.description || `Read "${blog.title}" by ${blog.author.firstName} on BlogVerse`,
     openGraph: {
       title: blog.title,
-      description: blog.description,
-      images: blog.imageUrl ? [blog.imageUrl] : [],
+      description: blog.description || `Read "${blog.title}" by ${blog.author.firstName} on BlogVerse`,
+      images: blog.imageUrl ? [{ url: blog.imageUrl }] : [],
       type: "article",
+      siteName: "BlogVerse",
       authors: [`${blog.author.firstName} ${blog.author.lastName}`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: blog.title,
+      description: blog.description || `Read "${blog.title}" by ${blog.author.firstName} on BlogVerse`,
+      images: blog.imageUrl ? [blog.imageUrl] : [],
     },
   };
 }
@@ -97,6 +106,22 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
     where: { userId_blogId: { userId, blogId: id } },
   });
 
+  // Fetch more blogs for recommendation
+  const moreBlogs = await prisma.blog.findMany({
+    where: { 
+      published: true,
+      NOT: { id: id }
+    },
+    include: {
+      author: {
+        select: { firstName: true, lastName: true, profilePhoto: true }
+      },
+      views: true
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 3
+  });
+
   const viewCount = blog.views.length;
   const readingTime = estimateReadingTime(blog.content);
   const showFollow = blog.author.id !== userId;
@@ -105,9 +130,8 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   );
 
   return (
-    <div className="h-screen overflow-y-scroll bg-background relative">
+    <div className="min-h-screen bg-background relative">
       <ReadingProgress />
-      <div className="p-4 md:p-8">
         <BlogViewer
           blogId={id}
           title={blog.title}
@@ -132,7 +156,40 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
           isAuthor={blog.author.id === userId}
           currentUserId={userId}
         />
-      </div>
+
+        {/* More from section */}
+        {moreBlogs.length > 0 && (
+          <section className="max-w-[720px] mx-auto px-5 border-t border-border/50 pt-12 pb-20">
+            <h3 className="text-xl font-bold mb-8 text-foreground">More from BlogVerse</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {moreBlogs.map((b: any) => (
+                <div key={b.id} className="flex flex-col gap-3 group">
+                  {b.imageUrl && (
+                    <Link href={`/blog/viewer/${b.id}`} className="relative aspect-video rounded overflow-hidden block">
+                      <Image src={b.imageUrl} fill className="object-cover group-hover:scale-105 transition-transform duration-500" alt={b.title} />
+                    </Link>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 relative flex-shrink-0">
+                        <Image 
+                          src={b.author.profilePhoto || `https://eu.ui-avatars.com/api/?name=${b.author.firstName}+${b.author.lastName}&background=random`} 
+                          fill 
+                          className="rounded-full object-cover" 
+                          alt={b.author.firstName} 
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{b.author.firstName} {b.author.lastName}</span>
+                    </div>
+                    <Link href={`/blog/viewer/${b.id}`} className="text-base font-bold text-foreground leading-snug hover:underline line-clamp-2">
+                      {b.title}
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
     </div>
   );
 };

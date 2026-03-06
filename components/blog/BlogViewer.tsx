@@ -4,13 +4,17 @@ import React, { useState, useEffect } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
 import Link from 'next/link';
-import { TwitterShareButton, WhatsappShareButton, TelegramShareButton, FacebookShareButton, TelegramIcon, XIcon, WhatsappIcon, FacebookIcon } from 'react-share';
+import { 
+  TwitterShareButton, WhatsappShareButton, TelegramShareButton, 
+  FacebookShareButton, EmailShareButton,
+  TwitterIcon, WhatsappIcon, FacebookIcon, TelegramIcon, EmailIcon
+} from 'react-share';
 import { handleVote, followUser, unFollowUser, toggleBookmark, recordView } from '@/utils/api';
 import { 
   EyeIcon, Share2, X, ThumbsUp, ThumbsDown, Copy,
   Loader2, BookmarkPlus, Bookmark, MessageSquare, Calendar,
   Check, BookOpen, ArrowLeft, Tag as TagIcon, UserPlus, UserCheck,
-  Edit, BarChart
+  Edit, BarChart, Instagram, Send
 } from 'lucide-react';
 import Comments from '../Comments';
 import type { BlogAuthor, CommentView, Tag } from '@/types';
@@ -49,6 +53,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [currentViewCount, setCurrentViewCount] = useState(viewCount);
+  const [canShareNatively, setCanShareNatively] = useState(false);
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/blog/viewer/${blogId}` : '';
   const shareTitle = title;
@@ -67,6 +72,12 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
     };
     record();
   }, [blogId, currentUserId]);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && !!navigator.share) {
+      setCanShareNatively(true);
+    }
+  }, []);
 
   const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
     try {
@@ -94,34 +105,84 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
   const handleCopyLink = () => { navigator.clipboard.writeText(shareUrl); setCopied(true); };
 
-  const formatDate = (date: Date) => new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          url: shareUrl,
+        });
+      } catch (error) {
+        console.error('Error sharing natively:', error);
+      }
+    }
+  };
+
+  const formatDate = (date: Date) => new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 
   const totalCommentCount = initialComments.length;
 
   return (
-    <div className="min-h-screen bg-background py-6 px-4 sm:px-6 relative">
+    <div className="bg-background relative">
       {/* Share Dialog */}
       {shareDialogOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm" onClick={() => setShareDialogOpen(false)}>
-          <div className="w-full max-w-md p-6 glass-card rounded-2xl shadow-2xl animate-fadeInUp" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-md p-6 bg-background border border-border rounded-2xl shadow-2xl animate-fadeInUp" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-xl font-bold text-foreground">Share this article</h3>
               <button onClick={() => setShareDialogOpen(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"><X size={20} /></button>
             </div>
             <p className="text-muted-foreground text-sm font-medium truncate mb-5">{title}</p>
-            <div className="flex justify-center gap-6 mb-6">
+            <div className="grid grid-cols-4 gap-y-8 gap-x-4 mb-8">
               <TwitterShareButton url={shareUrl} title={shareTitle}>
-                <div className="flex flex-col items-center gap-2"><div className="p-3 bg-muted/50 hover:bg-muted rounded-full transition-colors"><XIcon size={22} round /></div><span className="text-xs text-muted-foreground">Twitter</span></div>
+                <div className="flex flex-col items-center gap-2 group/icon transition-transform hover:scale-110">
+                  <TwitterIcon size={48} round />
+                  <span className="text-[11px] text-muted-foreground font-medium">X</span>
+                </div>
               </TwitterShareButton>
-              <WhatsappShareButton url={shareUrl} title={shareTitle}>
-                <div className="flex flex-col items-center gap-2"><div className="p-3 bg-muted/50 hover:bg-muted rounded-full transition-colors"><WhatsappIcon size={22} round /></div><span className="text-xs text-muted-foreground">WhatsApp</span></div>
+
+              <WhatsappShareButton url={shareUrl} title={shareTitle} separator=":: ">
+                <div className="flex flex-col items-center gap-2 group/icon transition-transform hover:scale-110">
+                  <WhatsappIcon size={48} round />
+                  <span className="text-[11px] text-muted-foreground font-medium">WhatsApp</span>
+                </div>
               </WhatsappShareButton>
-              <TelegramShareButton url={shareUrl} title={shareTitle}>
-                <div className="flex flex-col items-center gap-2"><div className="p-3 bg-muted/50 hover:bg-muted rounded-full transition-colors"><TelegramIcon size={22} round /></div><span className="text-xs text-muted-foreground">Telegram</span></div>
-              </TelegramShareButton>
-              <FacebookShareButton url={shareUrl} title={shareTitle}>
-                <div className="flex flex-col items-center gap-2"><div className="p-3 bg-muted/50 hover:bg-muted rounded-full transition-colors"><FacebookIcon size={22} round /></div><span className="text-xs text-muted-foreground">Facebook</span></div>
+
+              <FacebookShareButton url={shareUrl}>
+                <div className="flex flex-col items-center gap-2 group/icon transition-transform hover:scale-110">
+                  <FacebookIcon size={48} round />
+                  <span className="text-[11px] text-muted-foreground font-medium">Facebook</span>
+                </div>
               </FacebookShareButton>
+
+              <EmailShareButton url={shareUrl} subject={shareTitle} body={`Read this amazing article on BlogVerse: ${shareTitle}`}>
+                <div className="flex flex-col items-center gap-2 group/icon transition-transform hover:scale-110">
+                  <EmailIcon size={48} round />
+                  <span className="text-[11px] text-muted-foreground font-medium">Email</span>
+                </div>
+              </EmailShareButton>
+
+              <button 
+                onClick={canShareNatively ? handleNativeShare : handleCopyLink}
+                className="flex flex-col items-center gap-2 group/icon transition-transform hover:scale-110"
+              >
+                <div className="w-[48px] h-[48px] flex items-center justify-center bg-gradient-to-tr from-purple-500 via-pink-500 to-orange-500 rounded-full text-white shadow-lg">
+                  <Instagram size={24} />
+                </div>
+                <span className="text-[11px] text-muted-foreground font-medium">Instagram</span>
+              </button>
+
+              {canShareNatively && (
+                <button 
+                  onClick={handleNativeShare}
+                  className="flex flex-col items-center gap-2 group/icon transition-transform hover:scale-110"
+                >
+                  <div className="w-[48px] h-[48px] flex items-center justify-center bg-zinc-800 rounded-full text-zinc-100 shadow-lg">
+                    <Send size={24} />
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium">More</span>
+                </button>
+              )}
             </div>
             <div className="relative">
               <input type="text" value={shareUrl} readOnly className="w-full p-3 bg-muted/50 text-foreground rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary pr-12" />
@@ -134,182 +195,259 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
-        <button onClick={() => window.history.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors group">
-          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /><span className="text-sm">Back</span>
-        </button>
+      {/* Main Content — Medium-style centered narrow column */}
+      <div className="max-w-[720px] mx-auto px-5 pt-10 pb-20">
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Article Column */}
-          <div className="w-full lg:w-8/12">
-            <article className="glass-card rounded-2xl overflow-hidden shadow-xl mb-6">
-              {/* Hero Image */}
-              {imageUrl && (
-                <div className="relative w-full h-64 sm:h-80 overflow-hidden">
-                  <Image src={imageUrl} fill className="object-cover" alt={title} priority />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  {/* Floating actions on image */}
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <button onClick={() => setShareDialogOpen(true)} className="p-2.5 glass rounded-full text-white hover:bg-white/20 transition-colors" aria-label="Share"><Share2 size={18} /></button>
-                    <button onClick={handleBookmark} disabled={bookmarkLoading}
-                      className={cn("p-2.5 rounded-full transition-all", isBookmarked ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' : 'glass text-white hover:bg-white/20')} aria-label="Bookmark">
-                      {bookmarkLoading ? <Loader2 size={18} className="animate-spin" /> : isBookmarked ? <Bookmark size={18} /> : <BookmarkPlus size={18} />}
-                    </button>
-                  </div>
-                  {/* Title overlay on image */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                    {tags && tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {tags.map(tag => (
-                          <span key={tag.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-white/20 text-white backdrop-blur-sm border border-white/10">
-                            <TagIcon size={10} />{tag.name}
-                          </span>
-                        ))}
-                      </div>
+        {/* ======= TITLE ======= */}
+        <h1 className="text-[32px] sm:text-[42px] font-extrabold text-foreground tracking-tight leading-[1.15] mb-8">
+          {title}
+        </h1>
+
+        {/* ======= AUTHOR ROW ======= */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link href={`/profile/${author.username}`} className="flex-shrink-0">
+            <Image 
+              src={authorPhoto} 
+              height={44} 
+              width={44} 
+              alt={`${author.firstName} ${author.lastName}`} 
+              className="rounded-full object-cover"
+            />
+          </Link>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link href={`/profile/${author.username}`} className="text-foreground font-medium text-[15px] hover:underline">
+                {`${author.firstName} ${author.lastName}`}
+              </Link>
+              {!isAuthor && followButton && (
+                <>
+                  <span className="text-muted-foreground">·</span>
+                  <button 
+                    onClick={handleFollowToggle} 
+                    disabled={loading}
+                    className={cn(
+                      "text-sm font-medium transition-colors",
+                      isFollower ? "text-primary hover:text-destructive" : "text-primary hover:text-primary/80"
                     )}
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">{title}</h1>
-                  </div>
-                </div>
+                  >
+                    {loading ? "..." : isFollower ? "Following" : "Follow"}
+                  </button>
+                </>
               )}
-
-              {/* If no image, show title without overlay */}
-              {!imageUrl && (
-                <div className="p-6 sm:p-8 pb-0">
-                  {tags && tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {tags.map(tag => (
-                        <span key={tag.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">
-                          <TagIcon size={10} />{tag.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight leading-tight">{title}</h1>
-                </div>
-              )}
-
-              <div className="p-6 sm:p-8">
-                {/* Author & Meta Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <Image src={authorPhoto} height={48} width={48} alt={`${author.firstName} ${author.lastName}`} className="rounded-full ring-2 ring-primary/20" />
-                    <div>
-                      <div className="text-foreground font-semibold">{`${author.firstName} ${author.lastName}`}</div>
-                      <div className="text-muted-foreground text-sm">@{author.username}</div>
-                    </div>
-                    {followButton && !isAuthor && (
-                      <button onClick={handleFollowToggle} disabled={loading}
-                        className={cn(
-                          "ml-2 py-1.5 px-4 text-sm rounded-full transition-all flex items-center gap-1.5",
-                          loading ? 'bg-muted text-muted-foreground' :
-                          isFollower ? 'bg-muted hover:bg-destructive/10 hover:text-destructive text-muted-foreground border border-border' :
-                          'bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20'
-                        )}>
-                        {loading ? <Loader2 size={14} className="animate-spin" /> : isFollower ? <><UserCheck size={14} />Following</> : <><UserPlus size={14} />Follow</>}
-                      </button>
-                    )}
-                    {isAuthor && (
-                      <div className="flex items-center gap-2 ml-2">
-                        <Link href={`/myblogs/publishededitor/${blogId}`}
-                          className="py-1.5 px-4 text-sm rounded-full bg-muted hover:bg-muted/80 text-foreground border border-border flex items-center gap-1.5 transition-all">
-                          <Edit size={14} />Edit
-                        </Link>
-                        <Link href={`/myblogs/analytics/${blogId}`}
-                          className="py-1.5 px-4 text-sm rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 flex items-center gap-1.5 transition-all">
-                          <BarChart size={14} />Analytics
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Stats bar */}
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5" title="Views"><EyeIcon size={15} /><span>{currentViewCount}</span></div>
-                    <div className="flex items-center gap-1.5" title="Comments"><MessageSquare size={15} /><span>{totalCommentCount}</span></div>
-                    {readingTime && <div className="flex items-center gap-1.5" title="Reading time"><BookOpen size={15} /><span>{readingTime} min</span></div>}
-                    <div className="flex items-center gap-1.5" title="Published"><Calendar size={15} /><span>{formatDate(createdAt)}</span></div>
-                  </div>
-                </div>
-
-                {/* Article Content */}
-                <div className="prose prose-lg max-w-none
-                  dark:prose-invert
-                  prose-headings:text-foreground prose-headings:font-bold
-                  prose-p:text-foreground/80 prose-p:leading-relaxed
-                  prose-strong:text-foreground
-                  prose-a:text-primary hover:prose-a:text-primary/80 prose-a:no-underline prose-a:border-b prose-a:border-primary/30
-                  prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-                  prose-code:text-primary prose-code:bg-muted/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-['']
-                  prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border prose-pre:rounded-xl
-                  prose-img:rounded-xl prose-img:shadow-lg
-                  prose-li:text-foreground/80
-                  prose-hr:border-border
-                ">
-                  {parse(content)}
-                </div>
-
-                {/* Action Bar */}
-                <div className="mt-10 pt-6 border-t border-border">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    {/* Vote buttons */}
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleVoteAction('upvote')}
-                        className={cn(
-                          "flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-medium transition-all",
-                          hasVoted.up
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-sm'
-                            : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent'
-                        )}>
-                        <ThumbsUp size={18} className={hasVoted.up ? 'fill-current' : ''} /><span>{voteCount.upvotes}</span>
-                      </button>
-                      <button onClick={() => handleVoteAction('downvote')}
-                        className={cn(
-                          "flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-medium transition-all",
-                          hasVoted.down
-                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-sm'
-                            : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent'
-                        )}>
-                        <ThumbsDown size={18} className={hasVoted.down ? 'fill-current' : ''} /><span>{voteCount.downvotes}</span>
-                      </button>
-                    </div>
-
-                    {/* Save & Share */}
-                    <div className="flex items-center gap-2">
-                      <button onClick={handleBookmark} disabled={bookmarkLoading}
-                        className={cn(
-                          "flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-medium transition-all",
-                          isBookmarked
-                            ? 'bg-primary/10 text-primary border border-primary/30 shadow-sm'
-                            : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent'
-                        )}>
-                        {bookmarkLoading ? <Loader2 size={18} className="animate-spin" /> : isBookmarked ? <Bookmark size={18} className="fill-current" /> : <BookmarkPlus size={18} />}
-                        <span>{isBookmarked ? 'Saved' : 'Save'}</span>
-                      </button>
-                      <button onClick={() => setShareDialogOpen(true)} className="flex items-center gap-2 py-2.5 px-5 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all text-sm font-medium border border-transparent">
-                        <Share2 size={18} /><span>Share</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            {/* Comments on mobile */}
-            <div className="lg:hidden w-full">
-              <div className="glass-card rounded-2xl p-5 shadow-xl">
-                <Comments blogId={blogId} initialComments={initialComments} currentUserId={currentUserId} blogAuthorId={author.id} />
-              </div>
             </div>
-          </div>
-
-          {/* Comments sidebar on desktop */}
-          <div className="hidden lg:block lg:w-4/12">
-            <div className="sticky top-6 glass-card rounded-2xl p-5 shadow-xl max-h-[calc(100vh-3rem)] overflow-y-auto scrollbar-thin">
-              <Comments blogId={blogId} initialComments={initialComments} currentUserId={currentUserId} blogAuthorId={author.id} />
+            <div className="flex items-center gap-1.5 text-muted-foreground text-[13px]">
+              {readingTime && <span>{readingTime} min read</span>}
+              {readingTime && <span>·</span>}
+              <span>{formatDate(createdAt)}</span>
             </div>
           </div>
         </div>
+
+        {/* ======= ACTION BAR (top) ======= */}
+        <div className="flex items-center justify-between py-3 border-y border-border/60 mb-8">
+          {/* Left: Claps + Comments */}
+          <div className="flex items-center gap-5">
+            <button 
+              onClick={() => handleVoteAction('upvote')}
+              className={cn(
+                "flex items-center gap-1.5 transition-colors",
+                hasVoted.up ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <ThumbsUp size={20} className={cn(hasVoted.up && "fill-current")} />
+              <span className="text-[13px]">{voteCount.upvotes}</span>
+            </button>
+            
+            <button 
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => {
+                const commentsSection = document.getElementById('comments-section');
+                commentsSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <MessageSquare size={20} />
+              <span className="text-[13px]">{totalCommentCount}</span>
+            </button>
+          </div>
+
+          {/* Right: Bookmark + Share + Edit */}
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleBookmark} 
+              disabled={bookmarkLoading}
+              className={cn(
+                "transition-colors",
+                isBookmarked ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              title={isBookmarked ? "Remove bookmark" : "Save"}
+            >
+              {bookmarkLoading ? <Loader2 size={20} className="animate-spin" /> : <Bookmark size={20} className={isBookmarked ? "fill-current" : ""} />}
+            </button>
+
+            <button 
+              onClick={() => setShareDialogOpen(true)} 
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title="Share"
+            >
+              <Share2 size={20} />
+            </button>
+
+            {isAuthor && (
+              <Link 
+                href={`/blog/editor/${blogId}`}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Edit story"
+              >
+                <Edit size={20} />
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* ======= FEATURED IMAGE ======= */}
+        {imageUrl && (
+          <figure className="mb-10">
+            <div className="relative w-full aspect-[16/9] overflow-hidden">
+              <Image src={imageUrl} fill className="object-cover" alt={title} priority />
+            </div>
+          </figure>
+        )}
+
+        {/* ======= ARTICLE BODY ======= */}
+        <div className="prose prose-lg dark:prose-invert max-w-none premium-content
+          prose-p:text-foreground/90
+          prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
+          prose-img:rounded-none prose-img:shadow-none prose-img:my-8
+          prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+          prose-strong:text-foreground prose-strong:font-bold
+          prose-ol:my-4 prose-ul:my-4
+          prose-mark:bg-primary/20 prose-mark:text-primary prose-mark:px-1 prose-mark:rounded
+        ">
+          {parse(content)}
+        </div>
+
+        {/* ======= TAGS ======= */}
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-12 mb-6">
+            {tags.map(tag => (
+              <Link 
+                key={tag.id}
+                href={`/blog/blogs?search=${encodeURIComponent(tag.name)}`}
+                className="px-4 py-2 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full text-sm transition-colors"
+              >
+                {tag.name}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* ======= ACTION BAR (bottom) ======= */}
+        <div className="flex items-center justify-between py-3 border-y border-border/60 mt-8 mb-8">
+          {/* Left: Claps + Comments */}
+          <div className="flex items-center gap-5">
+            <button 
+              onClick={() => handleVoteAction('upvote')}
+              className={cn(
+                "flex items-center gap-1.5 transition-colors",
+                hasVoted.up ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <ThumbsUp size={20} className={cn(hasVoted.up && "fill-current")} />
+              <span className="text-[13px]">{voteCount.upvotes}</span>
+            </button>
+            
+            <button 
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => {
+                const commentsSection = document.getElementById('comments-section');
+                commentsSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <MessageSquare size={20} />
+              <span className="text-[13px]">{totalCommentCount}</span>
+            </button>
+          </div>
+
+          {/* Right: Bookmark + Share */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-muted-foreground text-sm" title="Views">
+              <EyeIcon size={18} />
+              <span>{currentViewCount}</span>
+            </div>
+            <button 
+              onClick={handleBookmark} 
+              disabled={bookmarkLoading}
+              className={cn(
+                "transition-colors",
+                isBookmarked ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              title={isBookmarked ? "Remove bookmark" : "Save"}
+            >
+              {bookmarkLoading ? <Loader2 size={20} className="animate-spin" /> : <Bookmark size={20} className={isBookmarked ? "fill-current" : ""} />}
+            </button>
+            <button 
+              onClick={() => setShareDialogOpen(true)} 
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title="Share"
+            >
+              <Share2 size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* ======= AUTHOR BIO / FOLLOW SECTION ======= */}
+        <div className="flex items-center gap-4 py-8 mb-12 border-b border-border/40">
+          <Link href={`/profile/${author.username}`} className="flex-shrink-0">
+            <Image 
+              src={authorPhoto} 
+              height={72} 
+              width={72} 
+              alt={`${author.firstName} ${author.lastName}`} 
+              className="rounded-full object-cover"
+            />
+          </Link>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <Link href={`/profile/${author.username}`} className="text-foreground font-bold text-lg hover:underline">
+                {`${author.firstName} ${author.lastName}`}
+              </Link>
+              {!isAuthor && followButton && (
+                <button 
+                  onClick={handleFollowToggle} 
+                  disabled={loading}
+                  className={cn(
+                    "py-2 px-5 text-sm rounded-full transition-all font-medium",
+                    loading ? 'bg-muted text-muted-foreground' :
+                    isFollower 
+                      ? 'bg-muted hover:bg-destructive/10 hover:text-destructive text-muted-foreground border border-border' 
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  )}
+                >
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : isFollower ? "Following" : "Follow"}
+                </button>
+              )}
+              {isAuthor && (
+                <div className="flex items-center gap-2">
+                  <Link href={`/blog/editor/${blogId}`}
+                    className="py-2 px-4 text-sm rounded-full bg-muted hover:bg-muted/80 text-foreground border border-border flex items-center gap-1.5 transition-all font-medium">
+                    <Edit size={14} />Edit
+                  </Link>
+                  <Link href={`/blog/analytics/${blogId}`}
+                    className="py-2 px-4 text-sm rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 flex items-center gap-1.5 transition-all font-medium">
+                    <BarChart size={14} />Analytics
+                  </Link>
+                </div>
+              )}
+            </div>
+            <p className="text-muted-foreground text-sm mt-1">@{author.username}</p>
+          </div>
+        </div>
+
+        {/* ======= COMMENTS SECTION ======= */}
+        <section id="comments-section" className="scroll-mt-24">
+          <h3 className="text-xl font-bold text-foreground mb-6">Responses ({totalCommentCount})</h3>
+          <Comments blogId={blogId} initialComments={initialComments} currentUserId={currentUserId} blogAuthorId={author.id} />
+        </section>
       </div>
     </div>
   );

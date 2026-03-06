@@ -3,7 +3,6 @@ export { default } from "next-auth/middleware";
 export const config = {
   matcher: [
     "/home/:path*",
-    "/myblogs/:path*",
     "/blog/editor/:path*",
     "/new-user/:path*",
     "/profile/:path*",

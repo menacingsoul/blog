@@ -1,5 +1,5 @@
 import React from 'react';
-import Analysis from '@/components/myBlogs/Analysis';
+import Analysis from '@/components/blog/Analysis';
 import { prisma } from '@/utils/db';
 import { getUser } from '@/utils/auth';
 

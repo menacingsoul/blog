@@ -5,9 +5,8 @@ const EditProfilePage = async () => {
   const user = await getCurrentUser();
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground mb-8">Edit Profile</h1>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[720px] mx-auto px-5 py-10">
         <EditProfileForm
           initialData={{
             firstName: user.firstName,
@@ -18,6 +17,7 @@ const EditProfilePage = async () => {
             country: user.country || "",
             profilePhoto: user.profilePhoto || "",
           }}
+          username={user.username || ""}
         />
       </div>
     </div>

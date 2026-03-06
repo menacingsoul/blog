@@ -14,7 +14,7 @@ export const sanitizeHtml = (dirty: string): string => {
       'a', 'img', 'video', 'iframe',
       'blockquote', 'pre', 'code',
       'table', 'thead', 'tbody', 'tr', 'th', 'td',
-      'div', 'span', 'sub', 'sup',
+      'div', 'span', 'sub', 'sup', 'mark',
     ],
     allowedAttributes: {
       '*': ['class', 'style'],

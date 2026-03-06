@@ -1,19 +1,19 @@
 import { ReactNode } from "react";
-import SidebarToggle from "@/components/SidebarToggle";
+import Navbar from "@/components/Navbar";
 
 interface Props {
   children: ReactNode;
 }
 
-const DashboardLayout = ({ children }: Props) => {
+const BlogLayout = ({ children }: Props) => {
   return (
-    <div className="w-screen flex flex-col md:flex-row">
-      <SidebarToggle />
-      <div className="md:ml-[230px] flex-1 h-full overflow-auto pb-16 md:pb-0">
+    <div className="w-full flex flex-col">
+      <Navbar />
+      <main className="flex-1 pt-16">
         {children}
-      </div>
+      </main>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default BlogLayout;

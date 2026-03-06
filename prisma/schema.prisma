@@ -79,7 +79,7 @@ model Blog {
   title       String
   description String
   content     String
-  imageUrl    String?  @default("https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2")
+  imageUrl    String?  @default("https://res.cloudinary.com/dbqkyypax/image/upload/v1772830693/blog/jvmbwv47e4bbdekca2re.png")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   published   Boolean  @default(false)

@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import SidebarToggle from "@/components/SidebarToggle";
+import Navbar from "@/components/Navbar";
 
 interface Props {
   children: ReactNode;
@@ -7,11 +7,11 @@ interface Props {
 
 const DashboardLayout = ({ children }: Props) => {
   return (
-    <div className="w-full min-h-screen flex flex-col md:flex-row overflow-x-hidden">
-      <SidebarToggle />
-      <div className="md:ml-[230px] flex-1 h-full overflow-auto pb-16 md:pb-0">
+    <div className="w-full min-h-screen flex flex-col overflow-x-hidden">
+      <Navbar />
+      <main className="flex-1 pt-16 h-full overflow-auto">
         {children}
-      </div>
+      </main>
     </div>
   );
 };
