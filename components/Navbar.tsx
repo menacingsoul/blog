@@ -36,10 +36,12 @@ const Navbar = () => {
         // silently fail
       }
     };
-    loadUnread();
-    const interval = setInterval(loadUnread, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (currentUser) {
+      loadUnread();
+      const interval = setInterval(loadUnread, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
 
   // Fetch current user info for profile link & avatar
   useEffect(() => {
@@ -119,64 +121,75 @@ const Navbar = () => {
             <Home className="w-5 h-5" />
           </Link>
 
-          {/* Write Link */}
-          <button 
-            onClick={handleCreateBlog}
-            disabled={isCreating}
-            className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all px-2 sm:px-3 py-1.5 rounded-full hover:bg-primary/5"
-            title="Write a blog"
-          >
-            {isCreating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Edit3 className="w-5 h-5" />
-            )}
-            <span className="hidden sm:inline text-sm font-medium">Write</span>
-          </button>
+          {currentUser ? (
+            <>
+              {/* Write Link */}
+              <button 
+                onClick={handleCreateBlog}
+                disabled={isCreating}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all px-2 sm:px-3 py-1.5 rounded-full hover:bg-primary/5"
+                title="Write a blog"
+              >
+                {isCreating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Edit3 className="w-5 h-5" />
+                )}
+                <span className="hidden sm:inline text-sm font-medium">Write</span>
+              </button>
 
-           {/* Bookmarks */}
-          <Link 
-            href="/bookmarks" 
-            className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${pathname === '/bookmarks' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
-            title="Bookmarks"
-          >
-            <Bookmark className="w-5 h-5" />
-          </Link>
+              {/* Bookmarks */}
+              <Link 
+                href="/bookmarks" 
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${pathname === '/bookmarks' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+                title="Bookmarks"
+              >
+                <Bookmark className="w-5 h-5" />
+              </Link>
 
-          {/* Notifications */}
-          <Link 
-            href="/notifications" 
-            className={`relative p-2 rounded-full transition-all ${pathname === '/notifications' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
-            title="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-background">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </Link>
+              {/* Notifications */}
+              <Link 
+                href="/notifications" 
+                className={`relative p-2 rounded-full transition-all ${pathname === '/notifications' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-background">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Profile Avatar */}
+              <Link 
+                href={profileHref}
+                className="flex-shrink-0 ml-1"
+                title="Profile"
+              >
+                <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/50 transition-all">
+                  <Image
+                    src={avatarUrl}
+                    fill
+                    alt="Your profile"
+                    className="object-cover"
+                  />
+                </div>
+              </Link>
+            </>
+          ) : (
+            <Link 
+              href="/sign-in" 
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-full font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/10"
+            >
+              Sign In
+            </Link>
+          )}
 
           {/* Theme Toggle */}
           <div className="pl-1 sm:pl-2 border-l border-border/50 ml-1">
             <ThemeToggle />
           </div>
-
-          {/* Profile Avatar */}
-          <Link 
-            href={profileHref}
-            className="flex-shrink-0 ml-1"
-            title="Profile"
-          >
-            <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/50 transition-all">
-              <Image
-                src={avatarUrl}
-                fill
-                alt="Your profile"
-                className="object-cover"
-              />
-            </div>
-          </Link>
         </div>
       </div>
     </header>

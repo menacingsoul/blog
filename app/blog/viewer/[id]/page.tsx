@@ -1,7 +1,8 @@
 import BlogViewer from "@/components/blog/BlogViewer";
 import ReadingProgress from "@/components/blog/ReadingProgress";
 import { prisma } from "@/utils/db";
-import { getUser } from "@/utils/auth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { estimateReadingTime } from "@/utils/readingTime";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -38,8 +39,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
-  const user = await getUser();
-  const userId = user.id;
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
 
   const blog = await prisma.blog.findUnique({
     where: { id },
@@ -97,14 +98,14 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
   }
 
   // Check if user has bookmarked this blog
-  const existingBookmark = await prisma.bookmark.findUnique({
+  const existingBookmark = userId ? await prisma.bookmark.findUnique({
     where: { userId_blogId: { userId, blogId: id } },
-  });
+  }) : null;
 
   // Check if user has voted on this blog
-  const existingVote = await prisma.vote.findUnique({
+  const existingVote = userId ? await prisma.vote.findUnique({
     where: { userId_blogId: { userId, blogId: id } },
-  });
+  }) : null;
 
   // Fetch more blogs for recommendation
   const moreBlogs = await prisma.blog.findMany({
@@ -124,10 +125,10 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
 
   const viewCount = blog.views.length;
   const readingTime = estimateReadingTime(blog.content);
-  const showFollow = blog.author.id !== userId;
-  const unfollow = blog.author.followers.some(
+  const showFollow = userId ? blog.author.id !== userId : true;
+  const unfollow = (userId && blog.author.followers) ? blog.author.followers.some(
     (follower: any) => follower.id === userId
-  );
+  ) : false;
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -177,7 +178,7 @@ const BlogViewPage = async ({ params }: { params: { id: string } }) => {
                           fill 
                           className="rounded-full object-cover" 
                           alt={b.author.firstName} 
-                        />
+                         />
                       </div>
                       <span className="text-xs text-muted-foreground">{b.author.firstName} {b.author.lastName}</span>
                     </div>

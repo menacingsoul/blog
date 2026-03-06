@@ -80,6 +80,10 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   }, []);
 
   const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
+    if (!currentUserId) {
+      window.location.href = '/sign-in';
+      return;
+    }
     try {
       const updatedBlog = await handleVote(blogId, voteType);
       if (updatedBlog.blog) {
@@ -90,6 +94,10 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   };
 
   const handleFollowToggle = async () => {
+    if (!currentUserId) {
+      window.location.href = '/sign-in';
+      return;
+    }
     setLoading(true);
     try { isFollower ? await unFollowUser(author.id) : await followUser(author.id); setIsFollower(!isFollower); }
     catch (error: any) { console.error(error.message); }
@@ -97,6 +105,10 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   };
 
   const handleBookmark = async () => {
+    if (!currentUserId) {
+      window.location.href = '/sign-in';
+      return;
+    }
     setBookmarkLoading(true);
     try { const result = await toggleBookmark(blogId); setIsBookmarked(result.bookmarked); }
     catch (error) { console.error('Error bookmarking:', error); }
@@ -205,20 +217,38 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
         {/* ======= AUTHOR ROW ======= */}
         <div className="flex items-center gap-3 mb-6">
-          <Link href={`/profile/${author.username}`} className="flex-shrink-0">
-            <Image 
-              src={authorPhoto} 
-              height={44} 
-              width={44} 
-              alt={`${author.firstName} ${author.lastName}`} 
-              className="rounded-full object-cover"
-            />
-          </Link>
+          {author.username ? (
+            <Link href={`/profile/${author.username}`} className="flex-shrink-0">
+              <Image 
+                src={authorPhoto} 
+                height={44} 
+                width={44} 
+                alt={`${author.firstName} ${author.lastName}`} 
+                className="rounded-full object-cover"
+              />
+            </Link>
+          ) : (
+            <div className="flex-shrink-0">
+              <Image 
+                src={authorPhoto} 
+                height={44} 
+                width={44} 
+                alt={`${author.firstName} ${author.lastName}`} 
+                className="rounded-full object-cover"
+              />
+            </div>
+          )}
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
-              <Link href={`/profile/${author.username}`} className="text-foreground font-medium text-[15px] hover:underline">
-                {`${author.firstName} ${author.lastName}`}
-              </Link>
+              {author.username ? (
+                <Link href={`/profile/${author.username}`} className="text-foreground font-medium text-[15px] hover:underline">
+                  {`${author.firstName} ${author.lastName}`}
+                </Link>
+              ) : (
+                <span className="text-foreground font-medium text-[15px]">
+                  {`${author.firstName} ${author.lastName}`}
+                </span>
+              )}
               {!isAuthor && followButton && (
                 <>
                   <span className="text-muted-foreground">·</span>
@@ -397,20 +427,38 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
         {/* ======= AUTHOR BIO / FOLLOW SECTION ======= */}
         <div className="flex items-center gap-4 py-8 mb-12 border-b border-border/40">
-          <Link href={`/profile/${author.username}`} className="flex-shrink-0">
-            <Image 
-              src={authorPhoto} 
-              height={72} 
-              width={72} 
-              alt={`${author.firstName} ${author.lastName}`} 
-              className="rounded-full object-cover"
-            />
-          </Link>
+          {author.username ? (
+            <Link href={`/profile/${author.username}`} className="flex-shrink-0">
+              <Image 
+                src={authorPhoto} 
+                height={72} 
+                width={72} 
+                alt={`${author.firstName} ${author.lastName}`} 
+                className="rounded-full object-cover"
+              />
+            </Link>
+          ) : (
+            <div className="flex-shrink-0">
+              <Image 
+                src={authorPhoto} 
+                height={72} 
+                width={72} 
+                alt={`${author.firstName} ${author.lastName}`} 
+                className="rounded-full object-cover"
+              />
+            </div>
+          )}
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <Link href={`/profile/${author.username}`} className="text-foreground font-bold text-lg hover:underline">
-                {`${author.firstName} ${author.lastName}`}
-              </Link>
+              {author.username ? (
+                <Link href={`/profile/${author.username}`} className="text-foreground font-bold text-lg hover:underline">
+                  {`${author.firstName} ${author.lastName}`}
+                </Link>
+              ) : (
+                <span className="text-foreground font-bold text-lg">
+                  {`${author.firstName} ${author.lastName}`}
+                </span>
+              )}
               {!isAuthor && followButton && (
                 <button 
                   onClick={handleFollowToggle} 
@@ -444,10 +492,23 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
         </div>
 
         {/* ======= COMMENTS SECTION ======= */}
-        <section id="comments-section" className="scroll-mt-24">
-          <h3 className="text-xl font-bold text-foreground mb-6">Responses ({totalCommentCount})</h3>
-          <Comments blogId={blogId} initialComments={initialComments} currentUserId={currentUserId} blogAuthorId={author.id} />
-        </section>
+        {currentUserId ? (
+          <section id="comments-section" className="scroll-mt-24">
+            <h3 className="text-xl font-bold text-foreground mb-6">Responses ({totalCommentCount})</h3>
+            <Comments blogId={blogId} initialComments={initialComments} currentUserId={currentUserId} blogAuthorId={author.id} />
+          </section>
+        ) : (
+          <section className="py-12 border-t border-border mt-12 text-center">
+            <h3 className="text-xl font-bold text-foreground mb-4">Join the conversation</h3>
+            <p className="text-muted-foreground mb-6">Sign in to read responses and share your thoughts.</p>
+            <Link 
+              href="/sign-in" 
+              className="inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground rounded-full font-bold hover:bg-primary/90 transition-all"
+            >
+              Sign in to BlogVerse
+            </Link>
+          </section>
+        )}
       </div>
     </div>
   );
