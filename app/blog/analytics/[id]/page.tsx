@@ -40,7 +40,20 @@ const AnalyticsPage = async ({ params }: { params: { id: string } }) => {
   }
 
   if (blog.author.id !== currentUserId) {
-    return <div>Unauthorized access</div>;
+    return (
+      <>
+      <div className='bg-gradient-to-br from-gray-900 to-black h-screen overflow-y-scroll'>
+        <div className="items-center p-6 z-50">
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-white">Unauthorized access</h1>
+              <p className="text-white">You are not authorized to view this page</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      </>
+    )
   }
 
   // Prepare data for the Analysis component

@@ -4,6 +4,7 @@ export const config = {
   matcher: [
     "/home/:path*",
     "/blog/editor/:path*",
+    "/blog/analytics/:path*",
     "/new-user/:path*",
     "/profile/:path*",
     "/bookmarks/:path*",

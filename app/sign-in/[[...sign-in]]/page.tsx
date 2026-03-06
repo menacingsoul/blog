@@ -29,7 +29,7 @@ export default function SignInPage() {
                 BlogVerse
               </span>
             </div>
-            <h1 className={`${raleway.className} text-3xl font-bold text-white mb-2`}>Welcome back</h1>
+            <h1 className={`${raleway.className} text-3xl font-bold text-white mb-2`}>Welcome</h1>
             <p className="text-white/50 text-sm">Sign in to continue to BlogVerse</p>
           </div>
 
@@ -46,11 +46,6 @@ export default function SignInPage() {
             </svg>
             <span>Continue with Google</span>
           </button>
-
-          {/* Footer text */}
-          <p className="text-center text-white/30 text-xs mt-6">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
-          </p>
         </div>
       </div>
     </main>
