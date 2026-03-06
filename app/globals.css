@@ -108,7 +108,7 @@
 }
 
 .reading-progress {
-  @apply fixed top-0 left-0 h-1 bg-gradient-to-r from-primary to-fuchsia-500 z-[100] transition-all duration-150;
+  @apply fixed top-16 left-0 h-[3px] bg-gradient-to-r from-primary to-fuchsia-500 z-[60] transition-all duration-150;
 }
 
 .prose-blog img {
@@ -157,4 +157,100 @@
   background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+mark {
+  background-color: hsl(var(--primary) / 0.3);
+  color: inherit;
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* Premium Content Styling - Shared by Editor & Viewer */
+.premium-content {
+  line-height: 1.7;
+  color: hsl(var(--foreground) / 0.9);
+}
+
+.premium-content p {
+  margin-bottom: 0.75rem !important;
+}
+
+.premium-content h1 {
+  font-weight: 800 !important;
+  font-size: 2.25rem !important;
+  margin-top: 2.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.premium-content h2 {
+  font-weight: 800 !important;
+  font-size: 1.875rem !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.premium-content h3 {
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  margin-top: 1.75rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.premium-content h4 {
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.premium-content blockquote {
+  border-left: 4px solid hsl(var(--primary)) !important;
+  padding-left: 1.5rem !important;
+  font-style: italic !important;
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 1.25rem !important;
+  margin: 2rem 0 !important;
+}
+
+.premium-content pre {
+  background: #0d1117 !important;
+  border-radius: 1rem !important;
+  color: #e6edf3 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace !important;
+  padding: 1.5rem !important;
+  margin: 1.5rem 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  line-height: 1.6 !important;
+  overflow-x: auto;
+}
+
+.premium-content pre code {
+  background: none !important;
+  color: inherit !important;
+  font-size: 0.9rem !important;
+  padding: 0 !important;
+}
+
+/* Fragmentation fix for code blocks */
+.premium-content pre + pre {
+  margin-top: -1.45rem !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-top: none !important;
+}
+
+.premium-content ul, 
+.premium-content ol {
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.premium-content li {
+  margin-bottom: 0.5rem !important;
+}
+
+.premium-content li p {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
 }

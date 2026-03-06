@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import "react-quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
 import { 
   Loader2, X, UploadCloud, Eye, EyeOff, 
   Save, Send, Trash2, Image as ImageIcon, ArrowLeft
@@ -13,7 +12,7 @@ import { deleteBlog } from "@/utils/api";
 import Image from "next/image";
 import BlogPreviewer from "./BlogPreviewer";
 import { cn } from "@/lib/utils";
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const TiptapEditor = dynamic(() => import("./TiptapEditor"), { ssr: false });
 
 interface BlogEditorProps {
   blogId: string;
@@ -61,7 +60,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     try {
       setShowConfirmDelete(false);
       await deleteBlog(blogId);
-      router.push("/myblogs");
+      router.push("/home");
     } catch (error) {
       console.error("Delete failed:", error);
     } finally {
@@ -79,7 +78,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         body: JSON.stringify({ title, description, content, published: true, imageUrl }),
       });
       if (res.ok) {
-        router.push("/myblogs");
+        router.push(`/blog/viewer/${blogId}`);
       } else {
         const errorData = await res.json();
         throw new Error(errorData?.message || "Failed to save blog");
@@ -103,7 +102,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     } catch (error) {
       console.error("Error saving draft:", error);
     } finally {
-      router.push("/myblogs");
+      router.back();
       setSavingDraft(false);
     }
   };
@@ -111,7 +110,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   // Autosave only for drafts
   useAutosave({
     data: isDraft ? { title, description, content, imageUrl } : null,
-    onSave: async (data) => {
+    onSave: async (data: any) => {
       if (!isDraft || !data) return;
       setIsAutosaving(true);
       try {
@@ -162,8 +161,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     <div className="min-h-screen bg-background py-6 px-4 sm:px-6 relative">
       <div className="max-w-5xl mx-auto">
         {/* Back button */}
-        <button onClick={() => router.push('/myblogs')} className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors group">
-          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /><span className="text-sm">Back to My Blogs</span>
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors group">
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /><span className="text-sm">Back</span>
         </button>
 
         {/* Header */}
@@ -215,7 +214,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         {/* Confirm Publish/Save Dialog */}
         {showConfirm && (
           <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm" onClick={() => setShowConfirm(false)}>
-            <div className="w-full max-w-md p-6 glass-card rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="w-full max-md p-6 glass-card rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-5">
                 <h3 className="text-xl font-bold text-foreground">{isDraft ? 'Confirm Publish' : 'Confirm Save'}</h3>
                 <button onClick={() => setShowConfirm(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"><X size={20} /></button>
@@ -346,9 +345,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
 
             {!preview ? (
               <div className="min-h-[500px]">
-                <ReactQuill value={content} onChange={handleContentChange}
-                  placeholder="Start writing your blog content here..."
-                  className="text-foreground bg-transparent editor-container" theme="snow" />
+                <TiptapEditor content={content} onChange={handleContentChange} placeholder="Start writing your masterpiece..." />
               </div>
             ) : (
               <BlogPreviewer title={title} content={content} imageUrl={imageUrl} />
@@ -378,63 +375,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           </div>
         </div>
       </div>
-      
-      {/* Custom styles for the editor */}
-      <style jsx global>{`
-        .editor-container .ql-editor {
-          min-height: 500px;
-          font-size: 1.125rem;
-        }
-        .editor-container .ql-toolbar {
-          background-color: hsl(var(--muted) / 0.3);
-          border-color: hsl(var(--border));
-          border-radius: 0.75rem 0.75rem 0 0;
-        }
-        .editor-container .ql-container {
-          border-color: hsl(var(--border));
-          background-color: hsl(var(--muted) / 0.1);
-          border-radius: 0 0 0.75rem 0.75rem;
-        }
-        .editor-container .ql-snow.ql-toolbar button,
-        .editor-container .ql-snow .ql-toolbar button {
-          color: hsl(var(--muted-foreground));
-        }
-        .editor-container .ql-snow.ql-toolbar button:hover,
-        .editor-container .ql-snow .ql-toolbar button:hover,
-        .editor-container .ql-snow.ql-toolbar button.ql-active,
-        .editor-container .ql-snow .ql-toolbar button.ql-active {
-          color: hsl(var(--primary));
-        }
-        .editor-container .ql-snow .ql-stroke {
-          stroke: hsl(var(--muted-foreground));
-        }
-        .editor-container .ql-snow .ql-fill {
-          fill: hsl(var(--muted-foreground));
-        }
-        .editor-container .ql-snow.ql-toolbar button:hover .ql-stroke,
-        .editor-container .ql-snow .ql-toolbar button:hover .ql-stroke,
-        .editor-container .ql-snow.ql-toolbar button.ql-active .ql-stroke,
-        .editor-container .ql-snow .ql-toolbar button.ql-active .ql-stroke {
-          stroke: hsl(var(--primary));
-        }
-        .editor-container .ql-snow.ql-toolbar button:hover .ql-fill,
-        .editor-container .ql-snow .ql-toolbar button:hover .ql-fill,
-        .editor-container .ql-snow.ql-toolbar button.ql-active .ql-fill,
-        .editor-container .ql-snow .ql-toolbar button.ql-active .ql-fill {
-          fill: hsl(var(--primary));
-        }
-        .editor-container .ql-snow .ql-picker-label {
-          color: hsl(var(--muted-foreground));
-        }
-        .editor-container .ql-snow .ql-picker-options {
-          background-color: hsl(var(--card));
-          border-color: hsl(var(--border));
-        }
-        .editor-container .ql-editor.ql-blank::before {
-          color: hsl(var(--muted-foreground) / 0.5);
-          font-style: normal;
-        }
-      `}</style>
     </div>
   );
 };

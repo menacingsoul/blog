@@ -1,14 +1,21 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Raleway } from "next/font/google";
+import { Raleway, Playfair_Display } from "next/font/google";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from 'next/navigation';
 import { prisma } from '@/utils/db';
+import { TrendingUp, Clock, ChevronRight } from 'lucide-react';
+import { estimateReadingTime } from '@/utils/readingTime';
 
 const raleway = Raleway({
   weight: ['400', '600', '700', '800'],
   subsets: ['latin'],
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['700', '900'],
 });
 
 export default async function Home() {
@@ -26,109 +33,136 @@ export default async function Home() {
     }
   }
 
+  // Fetch trending blogs for the "inspired" feel
+  const trendingBlogs = await prisma.blog.findMany({
+    where: { published: true },
+    include: {
+      author: {
+        select: {
+          firstName: true,
+          lastName: true,
+          profilePhoto: true,
+        },
+      },
+    },
+    orderBy: { upVotes: 'desc' },
+    take: 3,
+  });
+
   return (
-    <main className="min-h-screen overflow-hidden bg-black relative">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-600 rounded-full filter blur-3xl opacity-20 animate-pulse animation-delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-fuchsia-600 rounded-full filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
-        
-        {/* Grid background overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_40%,transparent_100%)]"></div>
+    <main className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
+      {/* Animated background elements - Keeping the BlogVerse vibe */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full filter blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-600/10 rounded-full filter blur-[120px] animate-pulse animation-delay-1000"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_70%,transparent_100%)]"></div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 container mx-auto px-4 h-screen flex flex-col">
+      <div className="relative z-10">
         {/* Header area */}
-        <header className="pt-6 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              height={40}
-              width={40}
-              alt="BlogVerse logo"
-              className="animate-spin-slow"
-            />
-            <span className={`${raleway.className} text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400`}>
+        <header className="container mx-auto px-6 py-8 flex justify-between items-center bg-black/50 backdrop-blur-md sticky top-0 z-50 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <span className={`${raleway.className} text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400`}>
               BlogVerse
             </span>
           </div>
           
-          <Link href="/sign-in">
-            <button className="text-white/70 hover:text-white border border-white/20 hover:border-white/40 px-4 py-2 rounded-lg transition-all duration-300 text-sm">
-              Sign In
-            </button>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/sign-in" className="text-sm font-medium text-white/70 hover:text-white transition-colors hidden sm:block">
+              Our Story
+            </Link>
+            <Link href="/sign-in">
+              <button className="bg-white text-black text-sm font-bold px-5 py-2 rounded-full hover:bg-white/90 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                Get Started
+              </button>
+            </Link>
+          </div>
         </header>
-        
-        {/* Hero section */}
-        <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-          {/* Left side content */}
-          <div className="flex-1 max-w-xl">
-            <h1 className={`${raleway.className} text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight`}>
-              Where <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-500">ideas</span> find their voice
+
+        {/* Hero Section - Refined but keeping the vibe */}
+        <section className="container mx-auto px-6 py-20 md:py-32 border-b border-white/5">
+          <div className="max-w-4xl">
+            <h1 className={`${playfair.className} text-6xl md:text-8xl lg:text-[100px] font-black leading-[0.9] tracking-tight mb-10`}>
+              Where ideas <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-fuchsia-500 italic">find</span> their voice.
             </h1>
-            
-            <p className="text-lg text-white/70 mb-8 leading-relaxed">
-              Join BlogVerse and become part of a thriving community of writers, thinkers, and creators. Share your perspective and connect with readers from around the world.
+            <p className="text-xl md:text-2xl text-white/60 leading-relaxed max-w-2xl mb-12">
+              Join BlogVerse to share your perspective with a global community of thinkers and creators.
             </p>
-            
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-5">
               <Link href="/sign-in">
-                <button className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40">
-                  Start Blogging
-                </button>
-              </Link>
-              <Link href="/sign-in">
-                <button className="border border-white/20 hover:border-white/40 text-white/80 hover:text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300">
-                  Sign In
+                <button className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white text-lg font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-xl shadow-indigo-500/20 active:scale-95">
+                  Start Reading
                 </button>
               </Link>
             </div>
-            
-            {/* Stats */}
-            <div className="flex gap-8 mt-12">
-              <div>
-                <p className="text-3xl font-bold text-white">10k+</p>
-                <p className="text-white/50 text-sm">Writers</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-white">50k+</p>
-                <p className="text-white/50 text-sm">Articles</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-white">2M+</p>
-                <p className="text-white/50 text-sm">Readers</p>
-              </div>
-            </div>
           </div>
-          
-          {/* Right side - floating cards */}
-          <div className="relative h-64 w-64 md:h-96 md:w-96">
-            <div className="absolute top-0 left-0 w-52 h-52 md:w-64 md:h-64 bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform rotate-6 hover:rotate-3 transition-all duration-300">
-              <div className="p-6">
-                <div className="w-10 h-10 rounded-full bg-indigo-500/50 mb-4"></div>
-                <div className="h-4 w-3/4 bg-white/20 rounded-lg mb-2"></div>
-                <div className="h-4 w-1/2 bg-white/20 rounded-lg mb-4"></div>
-                <div className="h-24 bg-white/10 rounded-lg"></div>
-              </div>
-            </div>
-            
-            <div className="absolute bottom-0 right-0 w-52 h-52 md:w-64 md:h-64 bg-gradient-to-br from-fuchsia-500/20 to-indigo-500/20 backdrop-filter backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl transform -rotate-6 hover:-rotate-3 transition-all duration-300">
-              <div className="p-6">
-                <div className="w-10 h-10 rounded-full bg-fuchsia-500/50 mb-4"></div>
-                <div className="h-4 w-3/4 bg-white/20 rounded-lg mb-2"></div>
-                <div className="h-4 w-1/2 bg-white/20 rounded-lg mb-4"></div>
-                <div className="h-24 bg-white/10 rounded-lg"></div>
-              </div>
-            </div>
+        </section>
+
+        {/* Trending Section - The "Medium" Inspiration */}
+        <section className="container mx-auto px-6 py-20">
+          <div className="flex items-center gap-2 mb-12 uppercase text-xs font-bold tracking-[0.2em] text-white/50">
+            <TrendingUp size={16} className="text-indigo-400" />
+            Trending on BlogVerse
           </div>
-        </div>
-        
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-16 gap-x-12">
+            {trendingBlogs.map((blog, idx) => {
+              const readTime = estimateReadingTime(blog.content);
+              const avatar = blog.author.profilePhoto || 
+                `https://eu.ui-avatars.com/api/?name=${blog.author.firstName}+${blog.author.lastName || ''}&color=7F9CF5&background=EBF4FF`;
+              
+              return (
+                <div key={blog.id} className="flex gap-5 group">
+                  <span className={`${playfair.className} text-4xl font-black text-white/50 select-none group-hover:text-indigo-500/30 transition-colors`}>
+                    0{idx + 1}
+                  </span>
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-2">
+                       <div className="relative w-5 h-5 rounded-full overflow-hidden">
+                          <Image 
+                            src={avatar} 
+                            fill
+                            className="object-cover" 
+                            alt={blog.author.firstName} 
+                          />
+                       </div>
+                      <span className="text-xs font-bold text-white/80">
+                        {blog.author.firstName} {blog.author.lastName}
+                      </span>
+                    </div>
+                    <Link href={`/sign-in`}>
+                      <h3 className={`${raleway.className} text-lg font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug`}>
+                        {blog.title}
+                      </h3>
+                    </Link>
+                    <div className="flex items-center gap-3 text-[11px] font-medium text-white/40 uppercase tracking-wider">
+                      <span>{new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                      <span>·</span>
+                      <span className="flex items-center gap-1">
+                        <Clock size={10} /> {readTime} min read
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Footer */}
-        <footer className="py-6 text-center text-white/40 text-sm">
-          <p>&copy; {new Date().getFullYear()} BlogVerse. All rights reserved.</p>
+        <footer className="container mx-auto px-6 py-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+           <div className="flex items-center gap-2">
+            <span className={`${raleway.className} text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400`}>
+              BlogVerse
+            </span>
+            <span className="text-white/20 text-sm">© {new Date().getFullYear()}</span>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold text-white/40 uppercase tracking-widest">
+            <Link href="#" className="hover:text-white transition-colors">Help</Link>
+            <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-white transition-colors">Terms</Link>
+            <Link href="#" className="hover:text-white transition-colors">About</Link>
+          </div>
         </footer>
       </div>
     </main>

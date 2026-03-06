@@ -38,17 +38,6 @@ const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
     );
   }
 
-  if (blog.published) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center text-foreground">
-          <h1 className="text-4xl font-bold mb-4">Already Published</h1>
-          <p className="text-muted-foreground">Use the Edit button from your blog post to edit published content.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <BlogEditor
       blogId={id}
@@ -56,7 +45,7 @@ const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
       initialContent={blog.content}
       initialTitle={blog.title}
       initialImageUrl={blog.imageUrl || ''}
-      mode="draft"
+      mode={blog.published ? 'published' : 'draft'}
     />
   );
 };

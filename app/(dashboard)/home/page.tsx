@@ -52,7 +52,7 @@ const BlogPage = async () => {
   const topBlogs = mostViewedBlogs.slice(1, 3);
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden pb-20 md:pb-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden pb-8">
       {/* Subtle background gradient blobs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full filter blur-3xl -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-fuchsia-500/5 rounded-full filter blur-3xl translate-y-1/2 -translate-x-1/2" />

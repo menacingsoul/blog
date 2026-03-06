@@ -53,7 +53,7 @@ const BlogCard: React.FC<{ blog: BlogCardType }> = ({ blog }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Reading time badge */}
-        <div className="absolute top-3 right-3 glass rounded-full px-3 py-1 text-xs font-medium text-white flex items-center gap-1.5">
+        <div className="absolute bg-background/80 backdrop-blur-xl top-3 right-3 rounded-full px-3 py-1 text-xs font-medium text-foreground flex items-center gap-1.5">
           <Clock className="w-3 h-3" />
           {readingTime} min
         </div>
