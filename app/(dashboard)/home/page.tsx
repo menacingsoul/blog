@@ -7,7 +7,7 @@ import HomeSearch from '@/components/home/HomeSearch';
 import Link from 'next/link';
 import { ArrowRightCircle, TrendingUp, Clock } from 'lucide-react';
 
-export const revalidate = 3600;
+export const revalidate = 1800;
 
 const BlogPage = async () => {
   const mostViewedBlogs = await prisma.blog.findMany({
