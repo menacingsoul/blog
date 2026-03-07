@@ -107,18 +107,35 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     }
   };
 
+  const lastSavedData = React.useRef({
+    title: initialTitle || "",
+    description: initialDescription || "",
+    content: initialContent || "",
+    imageUrl: initialImageUrl || ""
+  });
+
   // Autosave only for drafts
   useAutosave({
     data: isDraft ? { title, description, content, imageUrl } : null,
+    interval: 5000, // Debounce to 5 seconds
     onSave: async (data: any) => {
       if (!isDraft || !data) return;
+
+      const currentDataStr = JSON.stringify(data);
+      const lastSavedDataStr = JSON.stringify(lastSavedData.current);
+      
+      if (currentDataStr === lastSavedDataStr) {
+        return; // Prevent saving if content hasn't changed
+      }
+
       setIsAutosaving(true);
       try {
         await fetch(`/api/blog/${blogId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, description, content, imageUrl }),
+          body: currentDataStr,
         });
+        lastSavedData.current = data;
       } catch (error) {
         console.error("Error autosaving blog:", error);
       } finally {

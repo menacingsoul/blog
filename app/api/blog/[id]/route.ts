@@ -27,6 +27,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       where: { id },
       data: { title, description, content: sanitizedContent, published, imageUrl },
     });
+
+    // Generate and store embedding
+    const textToEmbed = `${title || ''}\n${description || ''}\n${sanitizedContent || ''}`.replace(/<[^>]*>?/gm, '');
+    if (textToEmbed.trim().length > 10) {
+      const { generateEmbedding } = await import('@/utils/embeddings');
+      const embedding = await generateEmbedding(textToEmbed);
+      if (embedding) {
+        await prisma.$executeRaw`UPDATE "Blog" SET embedding = ${embedding}::vector WHERE id = ${id}`;
+      }
+    }
     return NextResponse.json(updatedBlog);
   } catch (error) {
     console.error('Error updating blog:', error);

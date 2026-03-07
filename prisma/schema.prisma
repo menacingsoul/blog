@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
 }
 
 // NextAuth required models
@@ -79,6 +81,7 @@ model Blog {
   title       String
   description String
   content     String
+  embedding   Unsupported("vector(3072)")?
   imageUrl    String?  @default("https://res.cloudinary.com/dbqkyypax/image/upload/v1772830693/blog/jvmbwv47e4bbdekca2re.png")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
