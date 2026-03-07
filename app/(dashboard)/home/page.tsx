@@ -63,9 +63,6 @@ const BlogPage = async () => {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 tracking-tight animate-fadeInUp">
             Explore the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-fuchsia-400">BlogVerse</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Discover insightful articles, stories, and perspectives from our community of writers.
-          </p>
         </div>
 
         {/* Search bar */}

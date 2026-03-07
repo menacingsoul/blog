@@ -109,20 +109,50 @@ const BlogViewPage = async ({ params }: { params: Promise<{ id: string }> }) => 
   }) : null;
 
   // Fetch more blogs for recommendation
-  const moreBlogs = await prisma.blog.findMany({
-    where: { 
-      published: true,
-      NOT: { id: id }
-    },
-    include: {
-      author: {
-        select: { firstName: true, lastName: true, profilePhoto: true }
+  let moreBlogsRaw: any[] = [];
+  try {
+    // Attempt vector similarity search on published blogs (exclude current blog)
+    moreBlogsRaw = await prisma.$queryRaw`
+      SELECT id, title, "imageUrl", "authorId", "createdAt"
+      FROM "Blog"
+      WHERE id != ${id} AND published = true AND embedding IS NOT NULL AND (embedding <=> (SELECT embedding FROM "Blog" WHERE id = ${id})) <= 0.55
+      ORDER BY embedding <=> (SELECT embedding FROM "Blog" WHERE id = ${id})
+      LIMIT 3;
+    `;
+  } catch (error) {
+    console.error("Vector search failed, falling back to recent blogs:", error);
+  }
+
+  let moreBlogs: any[] = [];
+  if (moreBlogsRaw.length > 0) {
+    // Populate author details for the raw query results
+    const authorIds = moreBlogsRaw.map(b => b.authorId);
+    const authors = await prisma.user.findMany({
+      where: { id: { in: authorIds } },
+      select: { id: true, firstName: true, lastName: true, profilePhoto: true }
+    });
+    
+    moreBlogs = moreBlogsRaw.map(b => ({
+      ...b,
+      author: authors.find(a => a.id === b.authorId) || { firstName: 'Unknown', lastName: '', profilePhoto: '' }
+    }));
+  } else {
+    // Fallback if no embeddings exist yet
+    moreBlogs = await prisma.blog.findMany({
+      where: { 
+        published: true,
+        NOT: { id: id }
       },
-      views: true
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 3
-  });
+      include: {
+        author: {
+          select: { firstName: true, lastName: true, profilePhoto: true }
+        },
+        views: true
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 3
+    });
+  }
 
   const viewCount = blog.views.length;
   const readingTime = estimateReadingTime(blog.content);

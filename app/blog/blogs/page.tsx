@@ -4,37 +4,101 @@ import BlogCard from '@/components/cards/BlogCard';
 import BlogsSearch from '@/components/blog/BlogSearch';
 import { Search } from 'lucide-react';
 
-const Blogs = async ({ searchParams }: { searchParams: { search?: string; page?: string } }) => {
-  const searchQuery = searchParams.search || '';
-  const page = Number(searchParams.page || 1);
+const Blogs = async ({ searchParams }: { searchParams: Promise<{ search?: string; page?: string }> }) => {
+  const resolvedSearchParams = await searchParams;
+  const searchQuery = resolvedSearchParams.search || '';
+  const page = Number(resolvedSearchParams.page || 1);
   const limit = 12;
   const skip = (page - 1) * limit;
 
   const where: any = { published: true };
 
-  if (searchQuery) {
-    where.OR = [
-      { title: { contains: searchQuery, mode: 'insensitive' } },
-      { description: { contains: searchQuery, mode: 'insensitive' } },
-      { content: { contains: searchQuery, mode: 'insensitive' } },
-    ];
-  }
+  let blogs: any[] = [];
+  let total = 0;
 
-  const [blogs, total] = await Promise.all([
-    prisma.blog.findMany({
-      where,
-      include: {
-        author: {
-          select: { firstName: true, lastName: true, profilePhoto: true },
-        },
-        views: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip,
-    }),
-    prisma.blog.count({ where }),
-  ]);
+  if (searchQuery) {
+    const { generateEmbedding } = await import('@/utils/embeddings');
+    const embedding = await generateEmbedding(searchQuery);
+
+    if (embedding) {
+      try {
+        const embeddingString = JSON.stringify(embedding);
+        const rawBlogs: any[] = await prisma.$queryRaw`
+          SELECT id, title, description, content, "imageUrl", "createdAt", "authorId", "upVotes", "downVotes"
+          FROM "Blog"
+          WHERE published = true AND embedding IS NOT NULL AND (embedding <=> ${embeddingString}::vector) <= 0.55
+          ORDER BY embedding <=> ${embeddingString}::vector
+          LIMIT ${limit} OFFSET ${skip};
+        `;
+
+        const countQuery: any[] = await prisma.$queryRaw`
+          SELECT CAST(COUNT(*) AS INTEGER) as total
+          FROM "Blog"
+          WHERE published = true AND embedding IS NOT NULL AND (embedding <=> ${embeddingString}::vector) <= 0.55;
+        `;
+        total = countQuery[0]?.total || 0;
+
+        if (rawBlogs.length > 0) {
+          const authorIds = rawBlogs.map(b => b.authorId);
+          const authors = await prisma.user.findMany({
+            where: { id: { in: authorIds } },
+            select: { id: true, firstName: true, lastName: true, profilePhoto: true }
+          });
+
+          const viewCounts = await prisma.view.groupBy({
+            by: ['blogId'],
+            where: { blogId: { in: rawBlogs.map(b => b.id) } },
+            _count: true
+          });
+
+          blogs = rawBlogs.map(b => ({
+            ...b,
+            author: authors.find(a => a.id === b.authorId) || { firstName: 'Unknown', lastName: '' },
+            _count: { views: viewCounts.find(v => v.blogId === b.id)?._count || 0 }
+          }));
+        }
+      } catch (err) {
+        console.error("Vector Search failed, using fallback:", err);
+      }
+    }
+    
+    // Fallback if no embedding generated, raw query failed, or no vectors matched
+    if (blogs.length === 0) {
+      // Re-apply the normal text-search logic as a fallback
+      where.OR = [
+        { title: { contains: searchQuery, mode: 'insensitive' } },
+        { description: { contains: searchQuery, mode: 'insensitive' } },
+        { content: { contains: searchQuery, mode: 'insensitive' } },
+      ];
+
+      const [fallbackBlogs, fallbackTotal] = await Promise.all([
+        prisma.blog.findMany({
+          where,
+          include: { author: { select: { firstName: true, lastName: true, profilePhoto: true } }, views: true },
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip,
+        }),
+        prisma.blog.count({ where }),
+      ]);
+      blogs = fallbackBlogs;
+      total = fallbackTotal;
+    }
+  } else {
+    // No search query, just return everything sorted chronologically
+    const [allBlogs, allTotal] = await Promise.all([
+      prisma.blog.findMany({
+        where,
+        include: { author: { select: { firstName: true, lastName: true, profilePhoto: true } }, views: true },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      prisma.blog.count({ where }),
+    ]);
+    blogs = allBlogs;
+    total = allTotal;
+  }
 
   const totalPages = Math.ceil(total / limit);
 
