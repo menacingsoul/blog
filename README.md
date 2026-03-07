@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# BlogVerse
+
+BlogVerse is a modern, full-stack blogging platform where ideas find their voice. It allows users to write, publish, and engage with blogs seamlessly. The platform leverages edge-to-edge Next.js features and integrates with advanced AI tools to enable deep semantic searches across your articles.
+
+## Features
+
+- **Rich Text Editing:** Integrated with TipTap to provide a fully featured WYSIWYG rich text editor with support for images, formatting, code blocks, and markdown shortcuts.
+- **Smart Semantic Search:** Powered by Google Generative AI (Gemini) and `pgvector`, users can search for blogs contextually rather than just by stark keywords.
+- **Dynamic Dashboard & Analytics:** Users can track their views, upvotes, and overall engagement using Chart.js powered visual charts.
+- **Robust Authentication:** Secure and seamless login capabilities utilizing NextAuth.js (supporting Google Provider) and JWT session management.
+- **Fully Responsive Modern UI:** Built using Tailwind CSS, Radix UI primitives, Lucide React icons, and custom CSS animations, ensuring a sleek, premium, user-friendly interface.
+- **Interactivity:** Support for commenting, replies, upvoting, saving blogs to reading history, and bookmarking.
+
+## Tech Stack
+
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Database:** PostgreSQL (with `pgvector` extension)
+- **ORM:** Prisma Client
+- **Authentication:** NextAuth.js
+- **Styling:** Tailwind CSS + UI components (Radix UI)
+- **Editor:** TipTap
+- **AI Integration:** Google Generative AI (`@google/generative-ai`)
+- **Image Uploadings:** Cloudinary (`next-cloudinary`)
+- **Charts:** Chart.js + `react-chartjs-2`
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+Make sure you have Node.js (v18+) and npm/yarn/pnpm installed. You also need a PostgreSQL database with the `pgvector` extension enabled.
 
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd blog
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Environment Variables
+Create a `.env` and `.env.local` file in the root of the project to securely house your keys.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+**`.env`**
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/blogverse"
+```
 
-## Learn More
+**`.env.local`**
+```env
+# Cloudinary (for image uploads)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="your-upload-preset"
 
-To learn more about Next.js, take a look at the following resources:
+# NextAuth (Authentication)
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-nextauth-secret"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Google OAuth (for signing in)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+# Google Generative AI (for vector embeddings / semantic search)
+GOOGLE_API_KEY="your-gemini-api-key"
+```
 
-## Deploy on Vercel
+### 4. Database Setup
+Ensure that your connected PostgreSQL database supports the `vector` extension. Push your schema using Prisma:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npx prisma db push
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+*(If you are setting this up for the first time, make sure to manually execute `CREATE EXTENSION IF NOT EXISTS vector;` in your SQL shell before pushing the schema, if Prisma doesn't do it automatically depending on your permissions).*
+
+### 5. Running the Application
+Start the development server:
+```bash
+npm run dev
+```
+Navigate to `http://localhost:3000` in your web browser.
+
+## Project Structure
+
+- `/app`: Next.js App Router (Pages, API Routes, Layouts).
+- `/components`: Reusable UI components categorized by feature (e.g., `/cards`, `/blog`, `/home`, `/profile`).
+- `/prisma`: Contains the `schema.prisma` definitions for your database.
+- `/utils`: Helper functions and utilities (e.g., embeddings generator, sanitized HTML helpers, reading time calculators, DB connection).
+- `/lib`: Library configurations (e.g., NextAuth config options).
+
+## License
+This project is for educational/portfolio purposes and is not licensed for commercial extraction yet.
