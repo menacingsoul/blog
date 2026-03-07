@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/db';
 import { getUser } from '@/utils/auth';
 
-export async function POST(req: NextRequest, { params }: { params: { commentId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ commentId: string }> }) {
   try {
     const user = await getUser();
-    const { commentId } = params;
+    const { commentId } = await params;
 
     const existing = await prisma.commentLike.findUnique({
       where: { userId_commentId: { userId: user.id, commentId } },

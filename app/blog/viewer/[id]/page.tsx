@@ -9,9 +9,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 // Dynamic metadata for SEO
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
   const blog = await prisma.blog.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { title: true, description: true, imageUrl: true, author: { select: { firstName: true, lastName: true } } },
   });
 
@@ -37,8 +38,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-const BlogViewPage = async ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const BlogViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 

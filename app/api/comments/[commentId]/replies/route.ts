@@ -1,8 +1,8 @@
 import { prisma } from '@/utils/db';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { commentId: string } }) {
-  const { commentId } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ commentId: string }> }) {
+  const { commentId } = await params;
   const take = Number(req.nextUrl.searchParams.get('take') || 5);
   const skip = Number(req.nextUrl.searchParams.get('skip') || 0);
 

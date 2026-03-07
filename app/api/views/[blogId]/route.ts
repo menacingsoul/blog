@@ -2,8 +2,8 @@ import { getUser } from '@/utils/auth';
 import { NextResponse,NextRequest } from 'next/server';
 import { prisma } from '@/utils/db';
 
-export async function POST(request: NextRequest, { params }: { params: { blogId: string } }) {
-  const blogId = params.blogId;
+export async function POST(request: NextRequest, { params }: { params: Promise<{ blogId: string }> }) {
+  const { blogId } = await params;
 
   const user = await getUser();
   const userId = user.id; 

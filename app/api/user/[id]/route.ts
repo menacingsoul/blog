@@ -25,10 +25,10 @@ import { NextRequest } from 'next/server';
 //   }
 // }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }){
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }){
   try{
     const user  = await getUser();
-    const  {id} = params;
+    const  {id} = await params;
     const getUserBlogs = await prisma.blog.findMany({
       where:{
        authorId: id,
