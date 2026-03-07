@@ -2,8 +2,8 @@ import BlogEditor from '@/components/blog/BlogEditor';
 import { prisma } from '@/utils/db';
 import { getUser } from '@/utils/auth';
 
-const BlogEditorPage = async ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const BlogEditorPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
   const user = await getUser();
   const currentUserId = user.id;
 

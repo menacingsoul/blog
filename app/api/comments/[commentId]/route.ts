@@ -4,11 +4,11 @@ import { getUser } from '@/utils/auth';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
   try {
     const user = await getUser();
-    const { commentId } = params;
+    const { commentId } = await params;
 
     // Fetch the comment with its blog's author
     const comment = await prisma.comment.findUnique({

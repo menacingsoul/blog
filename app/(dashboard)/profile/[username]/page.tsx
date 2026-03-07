@@ -4,9 +4,10 @@ import { getUser } from "@/utils/auth";
 import AuthorProfile from "@/components/profile/AuthorProfile";
 import type { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params;
   const author = await prisma.user.findUnique({
-    where: { username: params.username },
+    where: { username },
     select: { firstName: true, lastName: true, bio: true, profilePhoto: true },
   });
 
@@ -25,8 +26,8 @@ export async function generateMetadata({ params }: { params: { username: string 
   };
 }
 
-const AuthorProfilePage = async ({ params }: { params: { username: string } }) => {
-  const { username } = params;
+const AuthorProfilePage = async ({ params }: { params: Promise<{ username: string }> }) => {
+  const { username } = await params;
   const currentUser = await getUser();
 
   const author = await prisma.user.findUnique({

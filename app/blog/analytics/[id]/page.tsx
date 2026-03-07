@@ -3,8 +3,8 @@ import Analysis from '@/components/blog/Analysis';
 import { prisma } from '@/utils/db';
 import { getUser } from '@/utils/auth';
 
-const AnalyticsPage = async ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const AnalyticsPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
   const user = await getUser();
   const currentUserId = user.id;
 
