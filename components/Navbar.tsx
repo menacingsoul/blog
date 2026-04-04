@@ -141,7 +141,7 @@ const Navbar = () => {
               {/* Bookmarks */}
               <Link 
                 href="/bookmarks" 
-                className={` flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${pathname === '/bookmarks' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${pathname === '/bookmarks' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
                 title="Bookmarks"
               >
                 <Bookmark className="w-5 h-5" />
