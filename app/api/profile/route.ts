@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
         website: formData.website,
         city: formData.city,
         country: formData.country,
-        ...(formData.profilePhoto && { profilePhoto: formData.profilePhoto }),
+        ...(formData.profilePhoto !== undefined && { profilePhoto: formData.profilePhoto || null }),
       },
     });
 
