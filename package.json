@@ -45,6 +45,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-country-region-selector": "^3.6.1",
     "react-dom": "^19.2.4",
+    "react-easy-crop": "^5.5.7",
     "react-hot-toast": "^2.4.1",
     "react-quill": "^2.0.0",
     "react-share": "^5.1.0",

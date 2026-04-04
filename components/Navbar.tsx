@@ -112,14 +112,14 @@ const Navbar = () => {
 
         {/* Right Side: Actions and Profile */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
-          {/* Home Link - Mobile only */}
+          {/* Home Link - Mobile only
           <Link 
             href="/home" 
             className={`md:hidden p-2 rounded-full transition-all ${pathname === '/home' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
             title="Home"
           >
             <Home className="w-5 h-5" />
-          </Link>
+          </Link> */}
 
           {currentUser ? (
             <>
@@ -141,7 +141,7 @@ const Navbar = () => {
               {/* Bookmarks */}
               <Link 
                 href="/bookmarks" 
-                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${pathname === '/bookmarks' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+                className={` flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${pathname === '/bookmarks' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
                 title="Bookmarks"
               >
                 <Bookmark className="w-5 h-5" />

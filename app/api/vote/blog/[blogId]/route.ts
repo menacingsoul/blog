@@ -27,12 +27,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (existingVote) {
       if (existingVote.upVote === isUpvote) {
-        // Same vote again — return current counts
-        const blog = await prisma.blog.findUnique({
+        // Same vote again — remove the vote (toggle off)
+        await prisma.vote.delete({
+          where: { id: existingVote.id },
+        });
+
+        const blog = await prisma.blog.update({
           where: { id: blogId },
+          data: {
+            upVotes: { decrement: isUpvote ? 1 : 0 },
+            downVotes: { decrement: isUpvote ? 0 : 1 },
+          },
           select: { upVotes: true, downVotes: true },
         });
-        return NextResponse.json({ message: `You have already ${type}d this blog`, blog });
+        return NextResponse.json({ message: `Your ${type} has been removed`, blog, removed: true });
       } else {
         // Changing vote direction
         await prisma.vote.update({

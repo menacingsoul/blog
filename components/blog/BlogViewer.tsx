@@ -50,6 +50,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hasVoted, setHasVoted] = useState({ up: initialVote === 'up', down: initialVote === 'down' });
+  const [voteLoading, setVoteLoading] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [currentViewCount, setCurrentViewCount] = useState(viewCount);
@@ -84,13 +85,20 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
       window.location.href = '/sign-in';
       return;
     }
+    setVoteLoading(true);
     try {
       const updatedBlog = await handleVote(blogId, voteType);
       if (updatedBlog.blog) {
         setVoteCount({ upvotes: updatedBlog.blog.upVotes, downvotes: updatedBlog.blog.downVotes });
       }
-      setHasVoted({ up: voteType === 'upvote', down: voteType === 'downvote' });
+      if (updatedBlog.removed) {
+        // Vote was toggled off
+        setHasVoted({ up: false, down: false });
+      } else {
+        setHasVoted({ up: voteType === 'upvote', down: voteType === 'downvote' });
+      }
     } catch (error) { console.error('Error handling vote:', error); }
+    finally { setVoteLoading(false); }
   };
 
   const handleFollowToggle = async () => {
@@ -279,12 +287,13 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
           <div className="flex items-center gap-5">
             <button 
               onClick={() => handleVoteAction('upvote')}
+              disabled={voteLoading}
               className={cn(
                 "flex items-center gap-1.5 transition-colors",
                 hasVoted.up ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <ThumbsUp size={20} className={cn(hasVoted.up && "fill-current")} />
+              {voteLoading ? <Loader2 size={20} className="animate-spin" /> : <ThumbsUp size={20} className={cn(hasVoted.up && "fill-current")} />}
               <span className="text-[13px]">{voteCount.upvotes}</span>
             </button>
             
@@ -377,12 +386,13 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
           <div className="flex items-center gap-5">
             <button 
               onClick={() => handleVoteAction('upvote')}
+              disabled={voteLoading}
               className={cn(
                 "flex items-center gap-1.5 transition-colors",
                 hasVoted.up ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <ThumbsUp size={20} className={cn(hasVoted.up && "fill-current")} />
+              {voteLoading ? <Loader2 size={20} className="animate-spin" /> : <ThumbsUp size={20} className={cn(hasVoted.up && "fill-current")} />}
               <span className="text-[13px]">{voteCount.upvotes}</span>
             </button>
             
