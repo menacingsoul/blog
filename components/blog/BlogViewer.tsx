@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
 import Link from 'next/link';
+import hljs from 'highlight.js';
 import { 
   TwitterShareButton, WhatsappShareButton, TelegramShareButton, 
   FacebookShareButton, EmailShareButton,
@@ -79,6 +80,10 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
       setCanShareNatively(true);
     }
   }, []);
+
+  useEffect(() => {
+    hljs.highlightAll();
+  }, [content]);
 
   const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
     if (!currentUserId) {

@@ -1,8 +1,10 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import { Raleway } from "next/font/google";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const raleway = Raleway({
   weight: ['400', '600', '700', '800'],
@@ -10,6 +12,15 @@ const raleway = Raleway({
 });
 
 export default function SignInPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (session) {
+      router.push("/");
+    }
+  }, [session, router]);
+
   return (
     <main className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center">
       {/* Animated background */}

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { 
   Loader2, X, UploadCloud, Eye, EyeOff, 
-  Save, Send, Trash2, Image as ImageIcon, ArrowLeft
+  Save, Send, Trash2, Image as ImageIcon, ArrowLeft, FolderOpen, Check
 } from "lucide-react";
 import { useAutosave } from "react-autosave";
 import { deleteBlog } from "@/utils/api";
@@ -21,6 +22,17 @@ interface BlogEditorProps {
   initialTitle: string;
   initialImageUrl: string;
   mode?: 'draft' | 'published';
+  username: string;
+}
+
+interface MediaItem {
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+  createdAt: string;
 }
 
 const BlogEditor: React.FC<BlogEditorProps> = ({
@@ -30,6 +42,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   initialTitle,
   initialImageUrl,
   mode = 'draft',
+  username,
 }) => {
   const [content, setContent] = useState(initialContent || "");
   const [description, setDescription] = useState(initialDescription || "");
@@ -38,6 +51,11 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [isPublishing, setPublishing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [isSavingDraft, setSavingDraft] = useState(false);
@@ -45,7 +63,12 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [showUploadDrawer, setShowUploadDrawer] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [preview, setPreview] = useState(false);
+  const [uploadTab, setUploadTab] = useState<'upload' | 'library'>('upload');
+  const [mediaLibrary, setMediaLibrary] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(false);
   const router = useRouter();
+
+  const mediaFolder = `blog/${username}/media_uploads`;
 
   const isDraft = mode === 'draft';
 
@@ -151,7 +174,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       const file = event.target.files[0];
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "");
+      formData.append("folder", mediaFolder);
 
       const xhr = new XMLHttpRequest();
       xhr.upload.addEventListener("progress", (event) => {
@@ -169,9 +192,30 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         setUploading(false);
       });
       xhr.addEventListener("error", () => { alert("Failed to upload image."); setUploading(false); });
-      xhr.open("POST", `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`);
+      xhr.open("POST", "/api/upload");
       xhr.send(formData);
     }
+  };
+
+  const fetchMediaLibrary = async () => {
+    if (mediaLibrary.length > 0) return; // already loaded
+    setLoadingMedia(true);
+    try {
+      const res = await fetch(`/api/media-library?username=${username}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMediaLibrary(data.media || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch media library", err);
+    } finally {
+      setLoadingMedia(false);
+    }
+  };
+
+  const handleSelectFromLibrary = (url: string) => {
+    setImageUrl(url);
+    setShowUploadDrawer(false);
   };
 
   return (
@@ -201,37 +245,40 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         </div>
 
         {/* Loading Overlays */}
-        {isPublishing && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
-            <div className="glass-card rounded-2xl p-8 shadow-xl">
+        {isPublishing && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm">
+            <div className="bg-background border border-border rounded-2xl p-8 shadow-xl">
               <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
               <p className="text-foreground text-center">{isDraft ? 'Publishing your blog...' : 'Saving changes...'}</p>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
-        {isSavingDraft && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
-            <div className="glass-card rounded-2xl p-8 shadow-xl">
+        {isSavingDraft && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm">
+            <div className="bg-background border border-border rounded-2xl p-8 shadow-xl">
               <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
               <p className="text-foreground text-center">Saving your draft...</p>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
-        {isDeleting && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
-            <div className="glass-card rounded-2xl p-8 shadow-xl">
+        {isDeleting && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm">
+            <div className="bg-background border border-border rounded-2xl p-8 shadow-xl">
               <Loader2 className="h-12 w-12 animate-spin text-destructive mx-auto mb-4" />
               <p className="text-foreground text-center">Deleting your blog...</p>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Confirm Publish/Save Dialog */}
-        {showConfirm && (
-          <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm" onClick={() => setShowConfirm(false)}>
-            <div className="w-full max-md p-6 glass-card rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+        {showConfirm && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setShowConfirm(false)}>
+            <div className="w-full max-w-md p-6 bg-background border border-border rounded-2xl shadow-2xl mx-4" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-5">
                 <h3 className="text-xl font-bold text-foreground">{isDraft ? 'Confirm Publish' : 'Confirm Save'}</h3>
                 <button onClick={() => setShowConfirm(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"><X size={20} /></button>
@@ -248,13 +295,14 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Confirm Delete Dialog */}
-        {showConfirmDelete && (
-          <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm" onClick={() => setShowConfirmDelete(false)}>
-            <div className="w-full max-w-md p-6 glass-card rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+        {showConfirmDelete && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setShowConfirmDelete(false)}>
+            <div className="w-full max-w-md p-6 bg-background border border-border rounded-2xl shadow-2xl mx-4" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-5">
                 <h3 className="text-xl font-bold text-foreground">Confirm Delete</h3>
                 <button onClick={() => setShowConfirmDelete(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"><X size={20} /></button>
@@ -267,36 +315,121 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Image Upload Dialog */}
-        {showUploadDrawer && (
-          <div className="fixed inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm" onClick={() => setShowUploadDrawer(false)}>
-            <div className="w-full max-w-md p-6 glass-card rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+        {showUploadDrawer && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setShowUploadDrawer(false)}>
+            <div className="w-full max-w-lg p-6 bg-background border border-border rounded-2xl shadow-2xl mx-4" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-5">
-                <h3 className="text-xl font-bold text-foreground">Upload Cover Image</h3>
+                <h3 className="text-xl font-bold text-foreground">Cover Image</h3>
                 <button onClick={() => setShowUploadDrawer(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"><X size={20} /></button>
               </div>
-              <div
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border rounded-xl bg-muted/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group"
-                onClick={() => document.getElementById("fileInput")?.click()}
-              >
-                <UploadCloud className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors mb-2" />
-                <p className="text-foreground">Click to upload or drag and drop</p>
-                <p className="text-foreground/60 text-sm">PNG, JPG, WebP (Max 10MB)</p>
+
+              {/* Tabs */}
+              <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mb-5">
+                <button
+                  onClick={() => setUploadTab('upload')}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
+                    uploadTab === 'upload'
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <UploadCloud size={14} />
+                  Upload New
+                </button>
+                <button
+                  onClick={() => { setUploadTab('library'); fetchMediaLibrary(); }}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
+                    uploadTab === 'library'
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <FolderOpen size={14} />
+                  Media Library
+                </button>
               </div>
-              <input id="fileInput" type="file" accept="image/*" onChange={handleUploadImage} className="hidden" />
-              {isUploading && (
-                <div className="relative pt-1 mt-4">
-                  <div className="overflow-hidden h-2 text-xs flex rounded-full bg-muted">
-                    <div style={{ width: `${uploadProgress}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-500 rounded-full"></div>
+
+              {uploadTab === 'upload' && (
+                <>
+                  <div
+                    className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border rounded-xl bg-muted/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group"
+                    onClick={() => document.getElementById("fileInput")?.click()}
+                  >
+                    <UploadCloud className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors mb-2" />
+                    <p className="text-foreground">Click to upload or drag and drop</p>
+                    <p className="text-foreground/60 text-sm">PNG, JPG, WebP (Max 10MB)</p>
                   </div>
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>Uploading...</span><span>{Math.round(uploadProgress)}%</span>
-                  </div>
+                  <input id="fileInput" type="file" accept="image/*" onChange={handleUploadImage} className="hidden" />
+                  {isUploading && (
+                    <div className="relative pt-1 mt-4">
+                      <div className="overflow-hidden h-2 text-xs flex rounded-full bg-muted">
+                        <div style={{ width: `${uploadProgress}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-500 rounded-full"></div>
+                      </div>
+                      <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                        <span>Uploading...</span><span>{Math.round(uploadProgress)}%</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {uploadTab === 'library' && (
+                <div>
+                  {loadingMedia ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  ) : mediaLibrary.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <FolderOpen size={32} className="mb-2 opacity-40" />
+                      <p className="text-sm">No media uploaded yet</p>
+                      <p className="text-xs mt-1">Upload images to your blog to see them here</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+                      {mediaLibrary.map((item) => {
+                        const isSelected = imageUrl === item.url;
+                        return (
+                          <button
+                            key={item.publicId}
+                            type="button"
+                            onClick={() => handleSelectFromLibrary(item.url)}
+                            className={cn(
+                              "relative aspect-video rounded-lg overflow-hidden border-2 transition-all duration-200 group/media",
+                              isSelected
+                                ? "border-primary ring-1 ring-primary"
+                                : "border-border hover:border-primary/50"
+                            )}
+                            title={`${item.format.toUpperCase()} · ${(item.bytes / 1024).toFixed(0)}KB · ${new Date(item.createdAt).toLocaleDateString()}`}
+                          >
+                            <Image
+                              src={item.url}
+                              fill
+                              alt="Media"
+                              className="object-cover group-hover/media:scale-105 transition-transform duration-200"
+                            />
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                                  <Check size={14} className="text-primary-foreground" />
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
+
               {imageUrl && (
                 <div className="mt-4">
                   <p className="text-foreground mb-2 font-medium text-sm">Preview:</p>
@@ -306,7 +439,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                 </div>
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Editor Card */}
@@ -362,7 +496,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
 
             {!preview ? (
               <div className="min-h-[500px]">
-                <TiptapEditor content={content} onChange={handleContentChange} placeholder="Start writing your masterpiece..." />
+                <TiptapEditor content={content} onChange={handleContentChange} placeholder="Start writing your masterpiece..." username={username} />
               </div>
             ) : (
               <BlogPreviewer title={title} content={content} imageUrl={imageUrl} />

@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useCallback } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import React, { useCallback, useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { useEditor, EditorContent, NodeViewWrapper, NodeViewContent, ReactNodeViewRenderer } from '@tiptap/react'
 import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -11,22 +12,133 @@ import Highlight from '@tiptap/extension-highlight'
 import Typography from '@tiptap/extension-typography'
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import FloatingMenuExtension from '@tiptap/extension-floating-menu'
-import CodeBlock from '@tiptap/extension-code-block'
-import Image from '@tiptap/extension-image'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import TiptapImage from '@tiptap/extension-image'
+import NextImage from 'next/image'
+import { all, createLowlight } from 'lowlight'
 import { 
-  Bold, Italic, List, ListOrdered, Quote, Heading1, Heading2, Heading3, Heading4,
+  Bold, Italic, List, ListOrdered, Quote, Heading1, Heading2, Heading3,
   Link as LinkIcon, Underline as UnderlineIcon, Highlighter,
-  Code, SeparatorHorizontal, Strikethrough, Plus, Type, Image as ImageIcon,
-  Loader2
+  Code, SeparatorHorizontal, Plus, Image as ImageIcon,
+  Loader2, X, UploadCloud, FolderOpen, Check, ChevronDown
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+// Create lowlight instance with all languages
+const lowlight = createLowlight(all)
+
+// Language options for the selector
+const LANGUAGES = [
+  { value: '', label: 'Auto' },
+  { value: 'plaintext', label: 'Plain Text' },
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'java', label: 'Java' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'c', label: 'C' },
+  { value: 'csharp', label: 'C#' },
+  { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' },
+  { value: 'ruby', label: 'Ruby' },
+  { value: 'php', label: 'PHP' },
+  { value: 'swift', label: 'Swift' },
+  { value: 'kotlin', label: 'Kotlin' },
+  { value: 'html', label: 'HTML' },
+  { value: 'css', label: 'CSS' },
+  { value: 'scss', label: 'SCSS' },
+  { value: 'json', label: 'JSON' },
+  { value: 'yaml', label: 'YAML' },
+  { value: 'xml', label: 'XML' },
+  { value: 'sql', label: 'SQL' },
+  { value: 'bash', label: 'Bash' },
+  { value: 'powershell', label: 'PowerShell' },
+  { value: 'dockerfile', label: 'Dockerfile' },
+  { value: 'markdown', label: 'Markdown' },
+  { value: 'graphql', label: 'GraphQL' },
+  { value: 'lua', label: 'Lua' },
+  { value: 'r', label: 'R' },
+  { value: 'dart', label: 'Dart' },
+]
+
+// Code block node view component with language selector
+const CodeBlockComponent = ({ node, updateAttributes, extension }: any) => {
+  const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const currentLang = node.attrs.language || ''
+  const currentLabel = LANGUAGES.find(l => l.value === currentLang)?.label || currentLang || 'Auto'
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <NodeViewWrapper className="relative">
+      <div className="absolute top-2 right-2 z-10" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => setShowDropdown(!showDropdown)}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono bg-white/10 hover:bg-white/20 text-zinc-400 hover:text-zinc-200 transition-all border border-white/5"
+          contentEditable={false}
+        >
+          {currentLabel}
+          <ChevronDown size={12} />
+        </button>
+        {showDropdown && (
+          <div className="absolute top-full right-0 mt-1 w-40 max-h-64 overflow-y-auto bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1 scrollbar-thin" contentEditable={false}>
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.value}
+                type="button"
+                onClick={() => {
+                  updateAttributes({ language: lang.value })
+                  setShowDropdown(false)
+                }}
+                className={cn(
+                  "w-full text-left px-3 py-1.5 text-xs font-mono transition-colors",
+                  currentLang === lang.value
+                    ? "bg-primary/20 text-primary"
+                    : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                )}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <pre spellCheck={false}>
+        {/* @ts-ignore - Tiptap types restrict 'as' prop to 'div' but 'code' works perfectly at runtime */}
+        <NodeViewContent as="code" />
+      </pre>
+    </NodeViewWrapper>
+  )
+}
 
 interface TiptapEditorProps {
   content: string
   onChange: (content: string) => void
   placeholder?: string
+  username: string
 }
 
-const TiptapEditor = ({ content, onChange, placeholder = 'Tell your story...' }: TiptapEditorProps) => {
+interface MediaItem {
+  url: string
+  publicId: string
+  width: number
+  height: number
+  format: string
+  bytes: number
+  createdAt: string
+}
+
+const TiptapEditor = ({ content, onChange, placeholder = 'Tell your story...', username }: TiptapEditorProps) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -35,12 +147,14 @@ const TiptapEditor = ({ content, onChange, placeholder = 'Tell your story...' }:
         },
         codeBlock: false, // disable StarterKit default to use explicit extension
       }),
-      CodeBlock.configure({
-        HTMLAttributes: {
-          class: 'code-block',
+      CodeBlockLowlight.extend({
+        addNodeView() {
+          return ReactNodeViewRenderer(CodeBlockComponent)
         },
+      }).configure({
+        lowlight,
       }),
-      Image.configure({
+      TiptapImage.configure({
         HTMLAttributes: {
           class: 'rounded-xl border border-border my-8 flex mx-auto max-w-full h-auto',
         },
@@ -72,41 +186,100 @@ const TiptapEditor = ({ content, onChange, placeholder = 'Tell your story...' }:
     },
   })
 
-  const [isUploading, setIsUploading] = React.useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [showMediaModal, setShowMediaModal] = useState(false)
+  const [mediaTab, setMediaTab] = useState<'upload' | 'library'>('upload')
+  const [mediaLibrary, setMediaLibrary] = useState<MediaItem[]>([])
+  const [loadingMedia, setLoadingMedia] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
-  const addImage = useCallback(() => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = async (event: any) => {
-      const file = event.target.files[0]
-      if (file) {
-        setIsUploading(true)
-        const formData = new FormData()
-        formData.append("file", file)
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "")
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-        try {
-          const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-            {
-              method: "POST",
-              body: formData,
-            }
-          )
-          const data = await response.json()
-          if (data.secure_url && editor) {
-            editor.chain().focus().setImage({ src: data.secure_url }).run()
-          }
-        } catch (error) {
-          console.error("Upload failed", error)
-        } finally {
-          setIsUploading(false)
+  const mediaFolder = `blog/${username}/media_uploads`
+
+  const fetchMediaLibrary = async () => {
+    if (mediaLibrary.length > 0) return
+    setLoadingMedia(true)
+    try {
+      const res = await fetch(`/api/media-library?username=${username}`)
+      if (res.ok) {
+        const data = await res.json()
+        setMediaLibrary(data.media || [])
+      }
+    } catch (err) {
+      console.error("Failed to fetch media library", err)
+    } finally {
+      setLoadingMedia(false)
+    }
+  }
+
+  const handleUploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !editor) return
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("folder", mediaFolder)
+
+    const xhr = new XMLHttpRequest()
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) setUploadProgress((e.loaded / e.total) * 100)
+    })
+    xhr.upload.addEventListener("load", () => setUploadProgress(100))
+    xhr.addEventListener("load", () => {
+      if (xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText)
+        if (response.secure_url) {
+          editor.chain().focus().setImage({ src: response.secure_url }).run()
+          // Add to local media library cache
+          setMediaLibrary(prev => [{
+            url: response.secure_url,
+            publicId: response.public_id,
+            width: response.width,
+            height: response.height,
+            format: file.name.split('.').pop() || 'jpg',
+            bytes: file.size,
+            createdAt: new Date().toISOString(),
+          }, ...prev])
+          setShowMediaModal(false)
         }
       }
-    }
-    input.click()
-  }, [editor])
+      setIsUploading(false)
+    })
+    xhr.addEventListener("error", () => {
+      console.error("Upload failed")
+      setIsUploading(false)
+    })
+    xhr.open("POST", "/api/upload")
+    xhr.send(formData)
+
+    // Reset input
+    event.target.value = ''
+  }
+
+  const handleSelectFromLibrary = (url: string) => {
+    if (!editor) return
+    editor.chain().focus().setImage({ src: url }).run()
+    setShowMediaModal(false)
+  }
+
+  // Quick upload (for floating menu click without modal)
+  const addImage = useCallback(() => {
+    setShowMediaModal(true)
+    setMediaTab('upload')
+  }, [])
+
+  const openMediaLibrary = useCallback(() => {
+    setShowMediaModal(true)
+    setMediaTab('library')
+    fetchMediaLibrary()
+  }, [mediaLibrary.length])
 
   const setLink = useCallback(() => {
     if (!editor) return
@@ -126,6 +299,113 @@ const TiptapEditor = ({ content, onChange, placeholder = 'Tell your story...' }:
 
   return (
     <div className="relative w-full editor-vibe">
+      {/* Media Modal */}
+      {mounted && showMediaModal && createPortal(
+        <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setShowMediaModal(false)}>
+          <div className="w-full max-w-lg p-6 bg-background border border-border rounded-2xl shadow-2xl mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-bold text-foreground">Add Image</h3>
+              <button onClick={() => setShowMediaModal(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mb-5">
+              <button
+                onClick={() => setMediaTab('upload')}
+                className={cn(
+                  "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
+                  mediaTab === 'upload'
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <UploadCloud size={14} />
+                Upload New
+              </button>
+              <button
+                onClick={() => { setMediaTab('library'); fetchMediaLibrary(); }}
+                className={cn(
+                  "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
+                  mediaTab === 'library'
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <FolderOpen size={14} />
+                Media Library
+              </button>
+            </div>
+
+            {mediaTab === 'upload' && (
+              <>
+                <div
+                  className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border rounded-xl bg-muted/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group"
+                  onClick={() => document.getElementById("tiptap-file-input")?.click()}
+                >
+                  <UploadCloud className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors mb-2" />
+                  <p className="text-foreground">Click to upload an image</p>
+                  <p className="text-foreground/60 text-sm">PNG, JPG, WebP, GIF (Max 10MB)</p>
+                </div>
+                <input id="tiptap-file-input" type="file" accept="image/*" onChange={handleUploadFile} className="hidden" />
+                {isUploading && (
+                  <div className="relative pt-1 mt-4">
+                    <div className="overflow-hidden h-2 text-xs flex rounded-full bg-muted">
+                      <div style={{ width: `${uploadProgress}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>Uploading...</span><span>{Math.round(uploadProgress)}%</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {mediaTab === 'library' && (
+              <div>
+                {loadingMedia ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : mediaLibrary.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <FolderOpen size={32} className="mb-2 opacity-40" />
+                    <p className="text-sm">No media uploaded yet</p>
+                    <p className="text-xs mt-1">Upload images to your blogs to build your library</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+                    {mediaLibrary.map((item) => (
+                      <button
+                        key={item.publicId}
+                        type="button"
+                        onClick={() => handleSelectFromLibrary(item.url)}
+                        className="relative aspect-video rounded-lg overflow-hidden border-2 border-border hover:border-primary/50 transition-all duration-200 group/media"
+                        title={`${item.format.toUpperCase()} · ${(item.bytes / 1024).toFixed(0)}KB · ${new Date(item.createdAt).toLocaleDateString()}`}
+                      >
+                        <NextImage
+                          src={item.url}
+                          fill
+                          alt="Media"
+                          className="object-cover group-hover/media:scale-105 transition-transform duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover/media:bg-black/20 transition-colors flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-primary/90 flex items-center justify-center shadow-lg opacity-0 group-hover/media:opacity-100 scale-75 group-hover/media:scale-100 transition-all">
+                            <Check size={16} className="text-primary-foreground" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Bubble Menu for Text Selections - Clean, Dark, Floating */}
       <BubbleMenu editor={editor}>
         <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 p-1 rounded-full shadow-2xl overflow-hidden shadow-black/40">
@@ -261,9 +541,16 @@ const TiptapEditor = ({ content, onChange, placeholder = 'Tell your story...' }:
               onClick={addImage}
               disabled={isUploading}
               className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors text-zinc-400 group/img flex items-center justify-center min-w-8 h-8"
-              title="Add Image"
+              title="Upload Image"
             >
               {isUploading ? <Loader2 size={16} className="animate-spin text-primary" /> : <ImageIcon size={16} className="group-hover/img:text-primary transition-colors" />}
+            </button>
+            <button
+              onClick={openMediaLibrary}
+              className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors text-zinc-400 group/lib flex items-center justify-center min-w-8 h-8"
+              title="Media Library"
+            >
+              <FolderOpen size={16} className="group-hover/lib:text-primary transition-colors" />
             </button>
           </div>
         </div>
