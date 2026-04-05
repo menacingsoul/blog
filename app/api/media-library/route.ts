@@ -14,20 +14,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    let username = searchParams.get("username");
+    // Securely derive username from the authenticated session to prevent enumeration
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { username: true },
+    });
 
-    if (!username) {
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { username: true },
-      });
-      username = user?.username || null;
+    if (!user || !user.username) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 403 });
     }
-
-    if (!username) {
-      return NextResponse.json({ media: [] });
-    }
+    
+    const username = user.username;
 
     // List all images in the user's media_uploads folder
     const folder = `blog/${username}/media_uploads`;

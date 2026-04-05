@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/utils/db";
 import crypto from "crypto";
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME!;
@@ -15,9 +16,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { username: true }
+    });
+
+    if (!user || !user.username) {
+      return NextResponse.json({ error: "User profile not found or incomplete" }, { status: 403 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as string) || "blog";
+
+    // Enforce folder isolation strictly to the authenticated user's namespace
+    if (folder.includes("..")) {
+      return NextResponse.json({ error: "Invalid folder path" }, { status: 400 });
+    }
+    if (folder !== "blog" && !folder.startsWith(`blog/${user.username}/`)) {
+      return NextResponse.json({ error: "Unauthorized folder path" }, { status: 403 });
+    }
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
