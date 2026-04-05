@@ -11,7 +11,7 @@ const BlogEditorPage = async ({ params }: { params: Promise<{ id: string }> }) =
     where: { id },
     include: {
       author: {
-        select: { id: true, firstName: true, lastName: true, profilePhoto: true },
+        select: { id: true, firstName: true, lastName: true, profilePhoto: true, username: true },
       },
     },
   });
@@ -46,6 +46,7 @@ const BlogEditorPage = async ({ params }: { params: Promise<{ id: string }> }) =
       initialTitle={blog.title}
       initialImageUrl={blog.imageUrl || ''}
       mode={blog.published ? 'published' : 'draft'}
+      username={blog.author.username || ''}
     />
   );
 };

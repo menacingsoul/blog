@@ -3,11 +3,19 @@
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { Raleway } from "next/font/google";
+import { getSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 
 const raleway = Raleway({
   weight: ['400', '600', '700', '800'],
   subsets: ['latin'],
 });
+
+const session = await getSession();
+
+if (session) {
+  redirect("/");
+}
 
 export default function SignInPage() {
   return (

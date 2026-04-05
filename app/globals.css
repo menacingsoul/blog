@@ -1,3 +1,6 @@
+/* Highlight.js Atom One Dark theme for code blocks */
+@import 'highlight.js/styles/atom-one-dark.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -221,7 +224,7 @@ mark {
   padding: 1.5rem !important;
   margin: 1.5rem 0 !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  line-height: 1.6 !important;
+  line-height: 1.45 !important;
   overflow-x: auto;
 }
 

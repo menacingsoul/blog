@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, FormEvent, useRef, useCallback } from "react";
+import React, { useState, useEffect, FormEvent, useRef, useCallback } from "react";
 import Image from "next/image";
 import { CountryDropdown } from "react-country-region-selector";
 import { useRouter } from "next/navigation";
 import { updateProfile } from "@/utils/api";
-import { Loader2, ArrowLeft, Check, Camera, X, UploadCloud, ZoomIn, ZoomOut } from "lucide-react";
+import { Loader2, ArrowLeft, Check, Camera, X, UploadCloud, ZoomIn, ZoomOut, History, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import type { ProfileFormData } from "@/types";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,12 @@ async function getCroppedImageBlob(imageSrc: string, pixelCrop: Area): Promise<B
   });
 }
 
+interface PastPhoto {
+  url: string;
+  publicId: string;
+  createdAt: string;
+}
+
 const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, username }) => {
   const [formData, setFormData] = useState(initialData);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +77,33 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, username
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  // Past photos state
+  const [pastPhotos, setPastPhotos] = useState<PastPhoto[]>([]);
+  const [loadingPastPhotos, setLoadingPastPhotos] = useState(true);
+  const [showPastPhotos, setShowPastPhotos] = useState(false);
+
+  useEffect(() => {
+    const fetchPastPhotos = async () => {
+      try {
+        const res = await fetch(`/api/profile-photos?username=${username}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPastPhotos(data.photos || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch past photos", err);
+      } finally {
+        setLoadingPastPhotos(false);
+      }
+    };
+    fetchPastPhotos();
+  }, [username]);
+
+  const handleSelectPastPhoto = (url: string) => {
+    setFormData((prev) => ({ ...prev, profilePhoto: url }));
+    if (saved) setSaved(false);
+  };
 
   const avatarUrl = formData.profilePhoto ||
     `https://eu.ui-avatars.com/api/?name=${formData.firstName}+${formData.lastName || ""}&color=7F9CF5&background=EBF4FF`;
@@ -107,13 +140,12 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, username
       const croppedBlob = await getCroppedImageBlob(cropImageSrc, croppedAreaPixels);
       setCropImageSrc(null);
 
-      // Upload the cropped blob
+      // Upload the cropped blob via server-side API
       setIsUploading(true);
       setUploadProgress(0);
 
       const uploadFormData = new FormData();
       uploadFormData.append("file", croppedBlob, "profile.jpg");
-      uploadFormData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "");
       uploadFormData.append("folder", `blog/${username}/profile_pics`);
 
       const xhr = new XMLHttpRequest();
@@ -135,7 +167,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, username
         setError("Failed to upload profile photo. Please try again.");
         setIsUploading(false);
       });
-      xhr.open("POST", `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`);
+      xhr.open("POST", "/api/upload");
       xhr.send(uploadFormData);
     } catch {
       setError("Failed to crop image. Please try again.");
@@ -275,68 +307,131 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ initialData, username
       </div>
 
       {/* Avatar Section */}
-      <div className="flex items-center gap-6 mb-10 pb-10 border-b border-border/50">
-        <div className="relative group">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-border">
-            <Image
-              src={avatarUrl}
-              fill
-              alt="Profile photo"
-              className="object-cover"
+      <div className="mb-10 pb-10 border-b border-border/50">
+        <div className="flex items-center gap-6">
+          <div className="relative group">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-border">
+              <Image
+                src={avatarUrl}
+                fill
+                alt="Profile photo"
+                className="object-cover"
+              />
+              {/* Upload overlay */}
+              {isUploading ? (
+                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                  <Loader2 size={20} className="animate-spin text-white mb-1" />
+                  <span className="text-white text-[10px] font-medium">{Math.round(uploadProgress)}%</span>
+                </div>
+              ) : (
+                <div
+                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera size={20} className="text-white" />
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
             />
-            {/* Upload overlay */}
-            {isUploading ? (
-              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
-                <Loader2 size={20} className="animate-spin text-white mb-1" />
-                <span className="text-white text-[10px] font-medium">{Math.round(uploadProgress)}%</span>
-              </div>
-            ) : (
-              <div
-                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Camera size={20} className="text-white" />
-              </div>
-            )}
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+          <div>
+            <p className="text-foreground font-medium text-lg">
+              {formData.firstName} {formData.lastName}
+            </p>
+            <p className="text-muted-foreground text-sm">@{username}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+              >
+                <UploadCloud size={12} />
+                {formData.profilePhoto ? "Change photo" : "Upload photo"}
+              </button>
+              {formData.profilePhoto && (
+                <>
+                  <span className="text-muted-foreground text-xs">·</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveProfilePhoto}
+                    className="text-xs font-medium text-destructive hover:text-destructive/80 transition-colors flex items-center gap-1"
+                  >
+                    <X size={12} />
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="text-foreground font-medium text-lg">
-            {formData.firstName} {formData.lastName}
-          </p>
-          <p className="text-muted-foreground text-sm">@{username}</p>
-          <div className="flex items-center gap-2 mt-2">
+
+        {/* Past Profile Photos */}
+        {!loadingPastPhotos && pastPhotos.length > 0 && (
+          <div className="mt-5">
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+              onClick={() => setShowPastPhotos(!showPastPhotos)}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
             >
-              <UploadCloud size={12} />
-              {formData.profilePhoto ? "Change photo" : "Upload photo"}
+              <History size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span>Previous photos ({pastPhotos.length})</span>
+              {showPastPhotos ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
-            {formData.profilePhoto && (
-              <>
-                <span className="text-muted-foreground text-xs">·</span>
-                <button
-                  type="button"
-                  onClick={handleRemoveProfilePhoto}
-                  className="text-xs font-medium text-destructive hover:text-destructive/80 transition-colors flex items-center gap-1"
-                >
-                  <X size={12} />
-                  Remove
-                </button>
-              </>
+
+            {showPastPhotos && (
+              <div className="mt-3 p-4 bg-muted/30 border border-border/50 rounded-xl">
+                <p className="text-xs text-muted-foreground mb-3">Click a photo to use it again</p>
+                <div className="flex flex-wrap gap-3">
+                  {pastPhotos.map((photo) => {
+                    const isSelected = formData.profilePhoto === photo.url;
+                    return (
+                      <button
+                        key={photo.publicId}
+                        type="button"
+                        onClick={() => handleSelectPastPhoto(photo.url)}
+                        className={cn(
+                          "relative w-16 h-16 rounded-full overflow-hidden transition-all duration-200 flex-shrink-0",
+                          isSelected
+                            ? "ring-[3px] ring-primary ring-offset-2 ring-offset-background scale-105"
+                            : "ring-2 ring-border hover:ring-primary/50 hover:scale-105"
+                        )}
+                        title={`Uploaded ${new Date(photo.createdAt).toLocaleDateString()}`}
+                      >
+                        <Image
+                          src={photo.url}
+                          fill
+                          alt="Past profile photo"
+                          className="object-cover"
+                        />
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                              <Check size={12} className="text-primary-foreground" />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
-        </div>
+        )}
+
+        {loadingPastPhotos && (
+          <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 size={12} className="animate-spin" />
+            <span>Loading past photos...</span>
+          </div>
+        )}
       </div>
 
       {/* Form */}
