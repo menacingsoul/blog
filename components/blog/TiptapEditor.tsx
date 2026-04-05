@@ -114,6 +114,7 @@ const CodeBlockComponent = ({ node, updateAttributes, extension }: any) => {
         )}
       </div>
       <pre spellCheck={false}>
+        {/* @ts-ignore - Tiptap types restrict 'as' prop to 'div' but 'code' works perfectly at runtime */}
         <NodeViewContent as="code" />
       </pre>
     </NodeViewWrapper>
