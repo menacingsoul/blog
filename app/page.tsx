@@ -130,7 +130,7 @@ export default async function Home() {
                             {blog.author.firstName} {blog.author.lastName}
                           </span>
                         </div>
-                        <Link href="/sign-in">
+                        <Link href={`/sign-in?callbackUrl=${encodeURIComponent(`/blog/viewer/${blog.id}`)}`}>
                           <h3 className={`${raleway.className} text-base font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug`}>
                             {blog.title}
                           </h3>

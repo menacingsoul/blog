@@ -3,8 +3,8 @@
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import { Raleway } from "next/font/google";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import { X } from "lucide-react";
 
 const raleway = Raleway({
@@ -278,17 +278,19 @@ function LegalModal({
 }
 
 // ─── Sign-In Page ──────────────────────────────────────────────────────────
-export default function SignInPage() {
+function SignInContent() {
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     if (session) {
-      router.push("/");
+      router.push(callbackUrl);
     }
-  }, [session, router]);
+  }, [session, router, callbackUrl]);
 
   return (
     <main className="min-h-screen bg-background text-foreground relative overflow-hidden flex flex-col">
@@ -325,7 +327,7 @@ export default function SignInPage() {
 
           {/* Google Sign In Button */}
           <button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={() => signIn("google", { callbackUrl })}
             className="w-full flex items-center justify-center gap-3 bg-card hover:bg-muted border border-border text-foreground font-medium py-3 px-6 rounded-full transition-all duration-200"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -371,5 +373,13 @@ export default function SignInPage() {
         sections={privacyPolicyContent}
       />
     </main>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }

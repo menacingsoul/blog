@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import parse from 'html-react-parser';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import hljs from 'highlight.js';
 import { 
   TwitterShareButton, WhatsappShareButton, TelegramShareButton, 
@@ -45,6 +46,7 @@ interface BlogViewerProps {
 const BlogViewer: React.FC<BlogViewerProps> = ({
   blogId, title, content, upVotes, downVotes, author, initialComments, viewCount, imageUrl, followButton, unfollow, createdAt, readingTime, tags, initialBookmarked = false, initialVote = null, isAuthor = false, currentUserId
 }) => {
+  const pathname = usePathname();
   const [voteCount, setVoteCount] = useState({ upvotes: upVotes, downvotes: downVotes });
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isFollower, setIsFollower] = useState(unfollow);
@@ -87,7 +89,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
   const handleVoteAction = async (voteType: 'upvote' | 'downvote') => {
     if (!currentUserId) {
-      window.location.href = '/sign-in';
+      window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`;
       return;
     }
     setVoteLoading(true);
@@ -108,7 +110,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
   const handleFollowToggle = async () => {
     if (!currentUserId) {
-      window.location.href = '/sign-in';
+      window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`;
       return;
     }
     setLoading(true);
@@ -119,7 +121,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
 
   const handleBookmark = async () => {
     if (!currentUserId) {
-      window.location.href = '/sign-in';
+      window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`;
       return;
     }
     setBookmarkLoading(true);
@@ -517,7 +519,7 @@ const BlogViewer: React.FC<BlogViewerProps> = ({
             <h3 className="text-xl font-bold text-foreground mb-4">Join the conversation</h3>
             <p className="text-muted-foreground mb-6">Sign in to read responses and share your thoughts.</p>
             <Link 
-              href="/sign-in" 
+              href={`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`} 
               className="inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground rounded-full font-bold hover:bg-primary/90 transition-all"
             >
               Sign in to BlogVerse
