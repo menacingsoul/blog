@@ -98,6 +98,8 @@ const Navbar = () => {
           </Link>
 
           {/* Search Bar */}
+          {currentUser ?(
+          <>
           <form onSubmit={handleSearch} className="hidden md:flex items-center bg-muted/40 border border-border/50 rounded-full px-4 py-1.5 w-full max-w-[280px] group focus-within:bg-muted/80 focus-within:border-primary/50 transition-all">
             <Search className="w-4 h-4 text-muted-foreground group-focus-within:text-primary" />
             <input 
@@ -108,6 +110,11 @@ const Navbar = () => {
               className="bg-transparent border-none outline-none text-sm ml-2 w-full text-foreground placeholder:text-muted-foreground"
             />
           </form>
+          </>
+          ):(
+            <></>
+          )}
+          
         </div>
 
         {/* Right Side: Actions and Profile */}
