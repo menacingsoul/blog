@@ -7,6 +7,7 @@ import { estimateReadingTime } from "@/utils/readingTime";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { getCurrentUser } from "@/utils/auth";
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     where: { id },
     select: { title: true, description: true, imageUrl: true, author: { select: { firstName: true, lastName: true } } },
   });
+  
 
   if (!blog) return { title: "Blog Not Found" };
 
@@ -197,7 +199,7 @@ const BlogViewPage = async ({ params }: { params: Promise<{ id: string }> }) => 
               {moreBlogs.map((b: any) => (
                 <div key={b.id} className="flex flex-col gap-3 group">
                   {b.imageUrl && (
-                    <Link href={`/blog/viewer/${b.id}`} className="relative aspect-video rounded overflow-hidden block">
+                    <Link href={session ? `/blog/viewer/${b.id}` : `/sign-in?callbackUrl=${encodeURIComponent(`/blog/viewer/${b.id}`)}`} className="relative aspect-video rounded overflow-hidden block">
                       <Image src={b.imageUrl} fill className="object-cover group-hover:scale-105 transition-transform duration-500" alt={b.title} />
                     </Link>
                   )}
@@ -213,7 +215,7 @@ const BlogViewPage = async ({ params }: { params: Promise<{ id: string }> }) => 
                       </div>
                       <span className="text-xs text-muted-foreground">{b.author.firstName} {b.author.lastName}</span>
                     </div>
-                    <Link href={`/blog/viewer/${b.id}`} className="text-base font-bold text-foreground leading-snug hover:underline line-clamp-2">
+                    <Link href={session ? `/blog/viewer/${b.id}` : `/sign-in?callbackUrl=${encodeURIComponent(`/blog/viewer/${b.id}`)}`} className="text-base font-bold text-foreground leading-snug hover:underline line-clamp-2">
                       {b.title}
                     </Link>
                   </div>
