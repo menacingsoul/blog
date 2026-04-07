@@ -13,7 +13,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'BlogVerse — Where Ideas Find Their Voice',
+  title: 'BlogVerse',
   description: 'Join BlogVerse and become part of a thriving community of writers, thinkers, and creators. Share your perspective and connect with readers worldwide.',
   keywords: ['blog', 'writing', 'community', 'articles', 'blogging platform'],
   openGraph: {
