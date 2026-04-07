@@ -137,7 +137,7 @@ const BlogViewPage = async ({ params }: { params: Promise<{ id: string }> }) => 
       author: authors.find(a => a.id === b.authorId) || { firstName: 'Unknown', lastName: '', profilePhoto: '' }
     }));
   } else {
-    // Fallback if no embeddings exist yet
+    // Fallback for embeddings
     moreBlogs = await prisma.blog.findMany({
       where: { 
         published: true,

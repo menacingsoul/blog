@@ -83,7 +83,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     try {
       setShowConfirmDelete(false);
       await deleteBlog(blogId);
-      router.push("/home");
+      router.push(`/profile/${username}`);
     } catch (error) {
       console.error("Delete failed:", error);
     } finally {
@@ -101,7 +101,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         body: JSON.stringify({ title, description, content, published: true, imageUrl }),
       });
       if (res.ok) {
-        router.push(`/blog/viewer/${blogId}`);
+        router.push(`/profile/${username}`);
       } else {
         const errorData = await res.json();
         throw new Error(errorData?.message || "Failed to save blog");

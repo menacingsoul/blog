@@ -179,7 +179,7 @@ const Navbar = () => {
             </>
           ) : (
             <Link 
-              href="/sign-in" 
+              href={`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`} 
               className="px-6 py-2 bg-primary text-primary-foreground rounded-full font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/10"
             >
               Sign In
