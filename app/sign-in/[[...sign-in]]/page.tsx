@@ -282,7 +282,12 @@ function SignInContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  let callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  // Validate the callbackUrl
+  if (!callbackUrl.startsWith("/") || callbackUrl.startsWith("//")) {
+    callbackUrl = "/";
+  }
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
